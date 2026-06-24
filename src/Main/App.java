@@ -1,1 +1,1 @@
-package Main;public class App {    public static void main(String[] args) {    }}
+package Main;public class App {    public static void main(String[] args) {        // Aplicar tema moderno FlatLaf (libreria externa requerida por la rubrica)        FlatLightLaf.setup();        // Lanzar en el Event Dispatch Thread de Swing        SwingUtilities.invokeLater(() -> {            PrincipalFrame frame = new PrincipalFrame();            frame.setVisible(true);        });    }}
