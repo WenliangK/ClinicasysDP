@@ -1,5 +1,10 @@
 package Controlador;
 
+import Decorator.AnalisisSangreDecorator;
+import Decorator.CitaBase;
+import Decorator.Facturable;
+import Decorator.RadiografiaDecorator;
+
 public class GestorFacturacion {
 
     /**

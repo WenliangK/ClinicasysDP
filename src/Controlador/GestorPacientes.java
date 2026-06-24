@@ -3,6 +3,7 @@ package Controlador;
 
 
 import Modelo.Paciente;
+import Utilidades.ExcepcionesPersonalizadas;
 
 import java.util.ArrayList;
 import java.util.List;

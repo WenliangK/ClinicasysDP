@@ -1,6 +1,12 @@
 package Controlador;
 
 
+import Modelo.Cita;
+import Modelo.Paciente;
+import Observer.Observador;
+import Observer.Sujeto;
+import Utilidades.ExcepcionesPersonalizadas;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
