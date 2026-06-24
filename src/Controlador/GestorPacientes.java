@@ -7,8 +7,6 @@ import Utilidades.ExcepcionesPersonalizadas;
 
 import java.util.ArrayList;
 import java.util.List;
-
-/** CONTROLADOR CRUD de pacientes. */
 public class GestorPacientes {
 
     private static GestorPacientes instancia;
@@ -16,7 +14,6 @@ public class GestorPacientes {
     private int contadorId = 1;
 
     private GestorPacientes() {
-        // Datos de muestra
         pacientes.add(new Paciente(contadorId++, "Maria Lopez",    "12345678", "987654321", "maria@mail.com"));
         pacientes.add(new Paciente(contadorId++, "Carlos Ruiz",    "87654321", "912345678", "carlos@mail.com"));
         pacientes.add(new Paciente(contadorId++, "Ana Torres",     "11223344", "945678901", "ana@mail.com"));

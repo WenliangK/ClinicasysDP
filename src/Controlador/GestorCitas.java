@@ -20,13 +20,10 @@ public class GestorCitas implements Sujeto {
 
     private GestorCitas() {}
 
-    // Singleton ligero para el controlador
     public static GestorCitas getInstancia() {
         if (instancia == null) instancia = new GestorCitas();
         return instancia;
     }
-
-    // ─── CRUD de Citas ───────────────────────────────────────────────
 
     public Cita registrarCita(Paciente paciente, String medico,
                               LocalDateTime fechaHora, String motivo)
@@ -60,8 +57,6 @@ public class GestorCitas implements Sujeto {
                 .filter(c -> c.getEstado() != Cita.Estado.CANCELADO)
                 .toList();
     }
-
-    // ─── Observer ────────────────────────────────────────────────────
 
     @Override
     public void suscribir(Observador o)   { observadores.add(o); }
