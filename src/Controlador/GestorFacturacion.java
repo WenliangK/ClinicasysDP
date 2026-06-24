@@ -6,14 +6,6 @@ import Decorator.Facturable;
 import Decorator.RadiografiaDecorator;
 
 public class GestorFacturacion {
-
-    /**
-     * Calcula el total de una cita base con los examenes seleccionados.
-     * @param descripcionCita  descripcion de la consulta
-     * @param conRadiografia   si se incluye radiografia (+S/ 30)
-     * @param conAnalisisSangre si se incluye analisis de sangre (+S/ 20)
-     * @return objeto Facturable con el costo y descripcion acumulados
-     */
     public Facturable calcularFactura(String descripcionCita,
                                       boolean conRadiografia,
                                       boolean conAnalisisSangre) {
@@ -29,7 +21,6 @@ public class GestorFacturacion {
         return factura;
     }
 
-    /** Genera un texto de boleta para mostrar en pantalla. */
     public String generarBoleta(Facturable factura) {
         return String.format(
                 "========================================\n" +

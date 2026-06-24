@@ -6,7 +6,6 @@ import Decorator.Facturable;
 import javax.swing.*;
 import java.awt.*;
 
-/** Panel de facturacion: demuestra el patron Decorator en accion. */
 public class FacturacionPanel extends JPanel {
 
     private JTextField txtMotivo;
