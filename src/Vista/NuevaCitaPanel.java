@@ -33,7 +33,6 @@ public class NuevaCitaPanel extends JPanel {
         JLabel titulo = new JLabel("Registrar Nueva Cita");
         titulo.setFont(new Font("SansSerif", Font.BOLD, 20));
         add(titulo, BorderLayout.NORTH);
-
         JPanel form = new JPanel(new GridBagLayout());
         form.setBorder(BorderFactory.createTitledBorder("Datos de la cita"));
         GridBagConstraints gbc = new GridBagConstraints();

@@ -1,11 +1,26 @@
 package Controlador;
 
+import DAO.FacturaDAO;
+import DAO.FacturaDAOImpl;
 import Decorator.AnalisisSangreDecorator;
 import Decorator.CitaBase;
 import Decorator.Facturable;
 import Decorator.RadiografiaDecorator;
+import Modelo.Factura;
+
+import java.sql.SQLException;
 
 public class GestorFacturacion {
+
+    private final FacturaDAO facturaDAO = new FacturaDAOImpl();
+
+    /**
+     * Calcula el total de una cita base con los examenes seleccionados.
+     * @param descripcionCita  descripcion de la consulta
+     * @param conRadiografia   si se incluye radiografia (+S/ 30)
+     * @param conAnalisisSangre si se incluye analisis de sangre (+S/ 20)
+     * @return objeto Facturable con el costo y descripcion acumulados
+     */
     public Facturable calcularFactura(String descripcionCita,
                                       boolean conRadiografia,
                                       boolean conAnalisisSangre) {
@@ -21,6 +36,7 @@ public class GestorFacturacion {
         return factura;
     }
 
+    /** Genera un texto de boleta para mostrar en pantalla. */
     public String generarBoleta(Facturable factura) {
         return String.format(
                 "========================================\n" +
@@ -33,5 +49,20 @@ public class GestorFacturacion {
                 factura.getDescripcion().replace(" + ", "\n  + "),
                 factura.getCosto()
         );
+    }
+
+    /**
+     * Persiste en la base de datos la factura ya calculada por el Decorator.
+     * @param factura resultado de calcularFactura(...)
+     * @param citaId  id de la cita asociada, o null si la factura no esta ligada a una cita guardada
+     */
+    public Factura guardarFactura(Facturable factura, Integer citaId) {
+        Factura f = new Factura(citaId, factura.getDescripcion(), factura.getCosto());
+        try {
+            facturaDAO.insertar(f);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al guardar la factura en la base de datos: " + e.getMessage(), e);
+        }
+        return f;
     }
 }

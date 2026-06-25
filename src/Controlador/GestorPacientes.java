@@ -1,22 +1,22 @@
 package Controlador;
 
-
-
+import DAO.PacienteDAO;
+import DAO.PacienteDAOImpl;
 import Modelo.Paciente;
 import Utilidades.ExcepcionesPersonalizadas;
 
-import java.util.ArrayList;
+import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
+
+/** CONTROLADOR CRUD de pacientes. Actua como puente entre la Vista y el PacienteDAO. */
 public class GestorPacientes {
 
     private static GestorPacientes instancia;
-    private List<Paciente> pacientes = new ArrayList<>();
-    private int contadorId = 1;
+    private final PacienteDAO pacienteDAO;
 
     private GestorPacientes() {
-        pacientes.add(new Paciente(contadorId++, "Maria Lopez",    "12345678", "987654321", "maria@mail.com"));
-        pacientes.add(new Paciente(contadorId++, "Carlos Ruiz",    "87654321", "912345678", "carlos@mail.com"));
-        pacientes.add(new Paciente(contadorId++, "Ana Torres",     "11223344", "945678901", "ana@mail.com"));
+        this.pacienteDAO = new PacienteDAOImpl();
     }
 
     public static GestorPacientes getInstancia() {
@@ -25,21 +25,41 @@ public class GestorPacientes {
     }
 
     public Paciente registrar(String nombre, String dni, String tel, String email) {
-        Paciente p = new Paciente(contadorId++, nombre, dni, tel, email);
-        pacientes.add(p);
+        Paciente p = new Paciente(nombre, dni, tel, email);
+        try {
+            pacienteDAO.insertar(p);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al registrar el paciente en la base de datos: " + e.getMessage(), e);
+        }
         return p;
     }
 
     public Paciente buscarPorDni(String dni)
             throws ExcepcionesPersonalizadas.PacienteNoEncontradoException {
-        return pacientes.stream()
-                .filter(p -> p.getDni().equals(dni))
-                .findFirst()
-                .orElseThrow(() ->
-                        new ExcepcionesPersonalizadas.PacienteNoEncontradoException(-1));
+        try {
+            Paciente p = pacienteDAO.buscarPorDni(dni);
+            if (p == null) {
+                throw new ExcepcionesPersonalizadas.PacienteNoEncontradoException(-1);
+            }
+            return p;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al buscar el paciente: " + e.getMessage(), e);
+        }
     }
 
-    public void eliminar(int id) { pacientes.removeIf(p -> p.getId() == id); }
+    public void eliminar(int id) {
+        try {
+            pacienteDAO.eliminar(id);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al eliminar el paciente: " + e.getMessage(), e);
+        }
+    }
 
-    public List<Paciente> getTodos() { return pacientes; }
+    public List<Paciente> getTodos() {
+        try {
+            return pacienteDAO.listarTodos();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al listar pacientes desde la base de datos: " + e.getMessage(), e);
+        }
+    }
 }

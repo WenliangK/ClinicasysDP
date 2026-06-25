@@ -2,15 +2,21 @@ package Vista;
 
 import Controlador.GestorFacturacion;
 import Decorator.Facturable;
+import Modelo.Factura;
 
 import javax.swing.*;
 import java.awt.*;
 
+/** Panel de facturacion: demuestra el patron Decorator en accion y persiste la boleta via FacturaDAO. */
 public class FacturacionPanel extends JPanel {
+
+    private final GestorFacturacion gestor = new GestorFacturacion();
 
     private JTextField txtMotivo;
     private JCheckBox chkRadiografia, chkAnalisisSangre;
     private JTextArea txtResultado;
+    private JButton btnGuardar;
+    private Facturable facturaCalculada; // ultima factura calculada, pendiente de guardar
 
     public FacturacionPanel() {
         setLayout(new BorderLayout(10, 10));
@@ -44,6 +50,11 @@ public class FacturacionPanel extends JPanel {
         btnCalcular.addActionListener(e -> calcular());
         gbc.gridy = 4; gbc.gridwidth = 2; form.add(btnCalcular, gbc);
 
+        btnGuardar = new JButton("Guardar Factura en Base de Datos");
+        btnGuardar.setEnabled(false);
+        btnGuardar.addActionListener(e -> guardar());
+        gbc.gridy = 5; form.add(btnGuardar, gbc);
+
         add(form, BorderLayout.WEST);
 
         txtResultado = new JTextArea(12, 35);
@@ -59,16 +70,31 @@ public class FacturacionPanel extends JPanel {
                         "Campo requerido", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            GestorFacturacion gestor = new GestorFacturacion();
-            Facturable factura = gestor.calcularFactura(
+            facturaCalculada = gestor.calcularFactura(
                     txtMotivo.getText().trim(),
                     chkRadiografia.isSelected(),
                     chkAnalisisSangre.isSelected()
             );
-            txtResultado.setText(gestor.generarBoleta(factura));
+            txtResultado.setText(gestor.generarBoleta(facturaCalculada));
+            btnGuardar.setEnabled(true);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "Error al calcular: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void guardar() {
+        if (facturaCalculada == null) return;
+        try {
+            // citaId = null: esta boleta no esta ligada a una cita especifica guardada.
+            Factura f = gestor.guardarFactura(facturaCalculada, null);
+            JOptionPane.showMessageDialog(this,
+                    "Factura #" + f.getId() + " guardada correctamente.",
+                    "Exito", JOptionPane.INFORMATION_MESSAGE);
+            btnGuardar.setEnabled(false);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error al guardar la factura: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
