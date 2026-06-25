@@ -15,12 +15,13 @@ public class PacienteDAOImpl implements PacienteDAO {
 
     @Override
     public void insertar(Paciente paciente) throws SQLException {
-        String sql = "INSERT INTO pacientes (nombre, dni, email) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO pacientes (nombre, dni, telefono, email) VALUES (?, ?, ?, ?)";
         Connection con = ConexionDB.getInstancia().getConexion();
         try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, paciente.getNombre());
             ps.setString(2, paciente.getDni());
-            ps.setString(3, paciente.getEmail());
+            ps.setString(3, paciente.getTelefono());
+            ps.setString(4, paciente.getEmail());
             ps.executeUpdate();
             // ...
 
