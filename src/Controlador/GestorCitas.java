@@ -29,8 +29,6 @@ public class GestorCitas implements Sujeto {
         return instancia;
     }
 
-    // ─── CRUD de Citas ───────────────────────────────────────────────
-
     public Cita registrarCita(Paciente paciente, String medico,
                                LocalDateTime fechaHora, String motivo)
             throws ExcepcionesPersonalizadas.FechaInvalidaException {
@@ -73,8 +71,6 @@ public class GestorCitas implements Sujeto {
                 .filter(c -> c.getEstado() != Cita.Estado.CANCELADO)
                 .toList();
     }
-
-    // ─── Observer ────────────────────────────────────────────────────
 
     @Override
     public void suscribir(Observador o)   { observadores.add(o); }

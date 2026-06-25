@@ -3,12 +3,6 @@ import Singleton.GestorConfiguracion;
 
 import javax.swing.*;
 import java.awt.*;
-
-/**
- * Ventana principal con menu lateral + CardLayout.
- * Patron GRASP Controlador: esta clase orquesta la navegacion
- * sin contener logica de negocio.
- */
 public class PrincipalFrame extends JFrame {
 
     private CardLayout cardLayout;
