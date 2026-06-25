@@ -1,4 +1,7 @@
 package Vista;
+
+
+
 import AbstractFactory.ClinicaFactory;
 import AbstractFactory.PrivadaFactory;
 import AbstractFactory.PublicaFactory;
@@ -16,6 +19,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
 
+/** Panel para registrar nuevas citas. Usa Abstract Factory para elegir tipo de atencion. */
 public class NuevaCitaPanel extends JPanel {
 
     private JComboBox<Paciente> cbPaciente;
@@ -33,7 +37,6 @@ public class NuevaCitaPanel extends JPanel {
         JLabel titulo = new JLabel("Registrar Nueva Cita");
         titulo.setFont(new Font("SansSerif", Font.BOLD, 20));
         add(titulo, BorderLayout.NORTH);
-
         JPanel form = new JPanel(new GridBagLayout());
         form.setBorder(BorderFactory.createTitledBorder("Datos de la cita"));
         GridBagConstraints gbc = new GridBagConstraints();
@@ -41,14 +44,17 @@ public class NuevaCitaPanel extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        // Paciente
         cbPaciente = new JComboBox<>();
         GestorPacientes.getInstancia().getTodos().forEach(cbPaciente::addItem);
 
+        // Tipo de atencion (Abstract Factory)
         cbTipoAtencion = new JComboBox<>(new String[]{"PRIVADO", "PUBLICO (SIS)"});
 
         txtMedico = new JTextField(20);
         txtMotivo = new JTextField(20);
 
+        // Fecha y hora
         spinnerFecha = new JSpinner(new SpinnerDateModel());
         spinnerFecha.setEditor(new JSpinner.DateEditor(spinnerFecha, "dd/MM/yyyy"));
 
@@ -82,9 +88,11 @@ public class NuevaCitaPanel extends JPanel {
             if (txtMedico.getText().trim().isEmpty()) { Validador.mostrarError(this, "Ingresa el nombre del medico."); return; }
             if (txtMotivo.getText().trim().isEmpty())  { Validador.mostrarError(this, "Ingresa el motivo de la consulta."); return; }
 
+            // Usar Abstract Factory segun tipo seleccionado
             String tipo = (String) cbTipoAtencion.getSelectedItem();
             ClinicaFactory factory = tipo.startsWith("PRIVADO") ? new PrivadaFactory() : new PublicaFactory();
 
+            // Construir fechaHora
             Date fechaVal = (Date) spinnerFecha.getValue();
             Date horaVal  = (Date) spinnerHora.getValue();
             LocalDate ld = fechaVal.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();

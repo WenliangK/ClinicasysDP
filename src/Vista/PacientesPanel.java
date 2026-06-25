@@ -11,6 +11,7 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.List;
 
+/** Panel de registro y listado de pacientes con validacion en tiempo real. */
 public class PacientesPanel extends JPanel {
 
     private JTextField txtNombre, txtDni, txtTelefono, txtEmail;
@@ -29,6 +30,7 @@ public class PacientesPanel extends JPanel {
         titulo.setFont(new Font("SansSerif", Font.BOLD, 20));
         add(titulo, BorderLayout.NORTH);
 
+        // Formulario de registro
         JPanel formulario = new JPanel(new GridBagLayout());
         formulario.setBorder(BorderFactory.createTitledBorder("Registrar nuevo paciente"));
         GridBagConstraints gbc = new GridBagConstraints();
@@ -40,6 +42,7 @@ public class PacientesPanel extends JPanel {
         txtTelefono = new JTextField(12);
         txtEmail    = new JTextField(20);
 
+        // Validacion en FocusLost
         txtDni.addFocusListener(new FocusAdapter() {
             @Override public void focusLost(FocusEvent e) {
                 Validador.marcarCampo(txtDni, Validador.validarDNI(txtDni.getText()));
@@ -68,6 +71,7 @@ public class PacientesPanel extends JPanel {
 
         add(formulario, BorderLayout.WEST);
 
+        // Tabla de pacientes
         String[] columnas = {"ID", "Nombre", "DNI", "Telefono", "Email"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }

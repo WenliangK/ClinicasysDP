@@ -12,14 +12,35 @@ public class Cita {
     private LocalDateTime fechaHora;
     private Estado estado;
     private String motivo;
+    private int medicoId;
+    private int salaId;
 
+    public int getMedicoId() {
+        return this.medicoId;
+    }
+
+    public int getSalaId() {
+        return this.salaId;
+    }
+
+    /** Constructor para una cita nueva (todavia no existe en la BD): id=0, estado=EN_ESPERA. */
+    public Cita(Paciente paciente, String medico, LocalDateTime fechaHora, String motivo) {
+        this(0, paciente, medico, fechaHora, motivo, Estado.EN_ESPERA);
+    }
+
+    /** Constructor de compatibilidad (sin estado explicito), usado por codigo previo. */
     public Cita(int id, Paciente paciente, String medico, LocalDateTime fechaHora, String motivo) {
+        this(id, paciente, medico, fechaHora, motivo, Estado.EN_ESPERA);
+    }
+
+    /** Constructor completo: usado por el DAO al reconstruir una fila existente de la BD. */
+    public Cita(int id, Paciente paciente, String medico, LocalDateTime fechaHora, String motivo, Estado estado) {
         this.id = id;
         this.paciente = paciente;
         this.medico = medico;
         this.fechaHora = fechaHora;
         this.motivo = motivo;
-        this.estado = Estado.EN_ESPERA;
+        this.estado = estado;
     }
 
     public int getId()                  { return id; }
@@ -28,6 +49,8 @@ public class Cita {
     public LocalDateTime getFechaHora()  { return fechaHora; }
     public Estado getEstado()            { return estado; }
     public String getMotivo()            { return motivo; }
+
+    public void setId(int id)             { this.id = id; }
     public void setEstado(Estado estado) { this.estado = estado; }
 
     public String getFechaFormateada() {

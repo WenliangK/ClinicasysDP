@@ -1,5 +1,6 @@
 package Decorator;
 
+/** Decorador concreto: agrega el costo de un analisis de sangre (+20 soles). */
 public class AnalisisSangreDecorator extends ExamenDecorator {
     private static final double COSTO_ANALISIS = 20.0;
 
