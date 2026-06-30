@@ -11,9 +11,9 @@ public class ConexionDB {
     private Connection conexion = null;
 
     // Credenciales de tu servidor PostgreSQL en Neon
-    private static final String URL = "jdbc:postgresql://ep-wild-term-aikaptzv.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require";
+    private static final String URL = "jdbc:postgresql://ep-wild-term-aikaptzv-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require ";
     private static final String USER = "neondb_owner";
-    private static final String PASSWORD = "npg_c8SWdAToQKY4";
+    private static final String PASSWORD = "npg_zrxZ8YMbn6mw";
 
     // CONSTRUCTOR PRIVADO (Obligatorio para el patrón Singleton)
     private ConexionDB() {
