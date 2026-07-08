@@ -8,8 +8,6 @@ import Utilidades.ExcepcionesPersonalizadas;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
-
-/** CONTROLADOR CRUD de pacientes. Actua como puente entre la Vista y el PacienteDAO. */
 public class GestorPacientes {
 
     private static GestorPacientes instancia;

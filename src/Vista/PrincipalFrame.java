@@ -52,9 +52,10 @@ public class PrincipalFrame extends JFrame {
         btn.setHorizontalAlignment(SwingConstants.LEFT);
         btn.addActionListener(e -> {
             cardLayout.show(panelContenido, cardName);
-            // Refrescar datos al navegar
-            if (cardName.equals("DASHBOARD"))  dashboardPanel.cargarDatos();
-            if (cardName.equals("PACIENTES"))  pacientesPanel.cargarTabla();
+            if (cardName.equals("DASHBOARD"))    dashboardPanel.cargarDatos();
+            if (cardName.equals("PACIENTES"))    pacientesPanel.cargarTabla();
+            if (cardName.equals("NUEVA_CITA"))   nuevaCitaPanel.cargarPacientes();
+            if (cardName.equals("FACTURACION"))  facturacionPanel.cargarPacientes();
         });
         menu.add(btn);
         menu.add(Box.createRigidArea(new Dimension(0, 6)));

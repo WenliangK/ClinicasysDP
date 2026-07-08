@@ -1,9 +1,3 @@
--- Ejecutar en Fedora:
---   sudo -u postgres psql
---   CREATE DATABASE clinicasys_db;
---   \c clinicasys_db
---   \i ruta/a/schema.sql
-
 CREATE TABLE IF NOT EXISTS pacientes (
     id        SERIAL PRIMARY KEY,
     nombre    VARCHAR(120) NOT NULL,

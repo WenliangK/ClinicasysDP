@@ -15,14 +15,12 @@ public class MedicoDAOImpl implements MedicoDAO {
 
     @Override
     public void insertar(Medico medico) throws SQLException {
-// Quité 'tipo' porque no está en tu script SQL original
         String sql = "INSERT INTO medicos (nombre, especialidad) VALUES (?, ?)";
         Connection con = ConexionDB.getInstancia().getConexion();
         try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, medico.getNombre());
             ps.setString(2, medico.getEspecialidad());
             ps.executeUpdate();
-            // ...
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {

@@ -6,7 +6,6 @@ public class Medico {
     private String especialidad;
     private String tipo;
 
-    /** Constructor completo: usado por el DAO al reconstruir un registro existente de la BD. */
     public Medico(int id, String nombre, String especialidad, String tipo) {
         this.id = id;
         this.nombre = nombre;
@@ -14,7 +13,6 @@ public class Medico {
         this.tipo = tipo;
     }
 
-    /** Constructor sin id: usado al crear un medico nuevo, antes de insertarlo en la BD. */
     public Medico(String nombre, String especialidad, String tipo) {
         this(0, nombre, especialidad, tipo);
     }
