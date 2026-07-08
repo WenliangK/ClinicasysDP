@@ -56,7 +56,7 @@ public class FacturacionPanel extends JPanel {
         gbc.gridx = 1; form.add(txtMotivo, gbc);
 
         gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
-        form.add(new JLabel("Examenes adicionales (Decorator):"), gbc);
+        form.add(new JLabel("Examenes adicionales:"), gbc);
         gbc.gridy = 3; form.add(chkRadiografia, gbc);
         gbc.gridy = 4; form.add(chkAnalisisSangre, gbc);
 

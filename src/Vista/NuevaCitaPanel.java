@@ -4,7 +4,9 @@ import AbstractFactory.PrivadaFactory;
 import AbstractFactory.PublicaFactory;
 import Controlador.GestorCitas;
 import Controlador.GestorPacientes;
+import Modelo.Medico;
 import Modelo.Paciente;
+import Modelo.Sala;
 import Utilidades.ExcepcionesPersonalizadas;
 import Utilidades.Validador;
 
@@ -20,8 +22,9 @@ public class NuevaCitaPanel extends JPanel {
 
     private JComboBox<Paciente> cbPaciente;
     private JComboBox<String> cbTipoAtencion;
-    private JTextField txtMedico, txtMotivo;
+    private JTextField txtMedico, txtEspecialidad, txtMotivo;
     private JSpinner spinnerFecha, spinnerHora;
+    private JSpinner spinnerSala;
 
     public NuevaCitaPanel() {
         setLayout(new BorderLayout(10, 10));
@@ -46,7 +49,10 @@ public class NuevaCitaPanel extends JPanel {
         cbTipoAtencion = new JComboBox<>(new String[]{"PRIVADO", "PUBLICO (SIS)"});
 
         txtMedico = new JTextField(20);
+        txtEspecialidad = new JTextField(20);
         txtMotivo = new JTextField(20);
+
+        spinnerSala = new JSpinner(new SpinnerNumberModel(1, 1, 20, 1));
 
         spinnerFecha = new JSpinner(new SpinnerDateModel());
         spinnerFecha.setEditor(new JSpinner.DateEditor(spinnerFecha, "dd/MM/yyyy"));
@@ -57,13 +63,15 @@ public class NuevaCitaPanel extends JPanel {
         agregarFila(form, gbc, 0, "Paciente:", cbPaciente);
         agregarFila(form, gbc, 1, "Tipo de atencion:", cbTipoAtencion);
         agregarFila(form, gbc, 2, "Medico asignado:", txtMedico);
-        agregarFila(form, gbc, 3, "Motivo:", txtMotivo);
-        agregarFila(form, gbc, 4, "Fecha:", spinnerFecha);
-        agregarFila(form, gbc, 5, "Hora:", spinnerHora);
+        agregarFila(form, gbc, 3, "Especialidad del medico:", txtEspecialidad);
+        agregarFila(form, gbc, 4, "Sala:", spinnerSala);
+        agregarFila(form, gbc, 5, "Motivo:", txtMotivo);
+        agregarFila(form, gbc, 6, "Fecha:", spinnerFecha);
+        agregarFila(form, gbc, 7, "Hora:", spinnerHora);
 
         JButton btnGuardar = new JButton("Guardar Cita");
         btnGuardar.addActionListener(e -> guardarCita());
-        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2;
         form.add(btnGuardar, gbc);
 
         add(form, BorderLayout.CENTER);
@@ -87,10 +95,18 @@ public class NuevaCitaPanel extends JPanel {
             Paciente paciente = (Paciente) cbPaciente.getSelectedItem();
             if (paciente == null) { Validador.mostrarError(this, "Selecciona un paciente."); return; }
             if (txtMedico.getText().trim().isEmpty()) { Validador.mostrarError(this, "Ingresa el nombre del medico."); return; }
+            if (txtEspecialidad.getText().trim().isEmpty()) { Validador.mostrarError(this, "Ingresa la especialidad del medico."); return; }
             if (txtMotivo.getText().trim().isEmpty())  { Validador.mostrarError(this, "Ingresa el motivo de la consulta."); return; }
 
+            // --- AbstractFactory en accion: segun el tipo de atencion, se crea una FAMILIA
+            // de objetos relacionados (Medico + Sala) con reglas propias de cada tipo de clinica
+            // (ej. las salas privadas se marcan "[Premium]", las publicas "[SIS]"). ---
             String tipo = (String) cbTipoAtencion.getSelectedItem();
             ClinicaFactory factory = tipo.startsWith("PRIVADO") ? new PrivadaFactory() : new PublicaFactory();
+
+            int numeroSala = (int) spinnerSala.getValue();
+            Medico medico = factory.crearMedico(0, txtMedico.getText().trim(), txtEspecialidad.getText().trim());
+            Sala sala = factory.crearSala(numeroSala, "Consultorio de " + medico.getEspecialidad());
 
             Date fechaVal = (Date) spinnerFecha.getValue();
             Date horaVal  = (Date) spinnerHora.getValue();
@@ -98,12 +114,19 @@ public class NuevaCitaPanel extends JPanel {
             LocalTime lt = horaVal.toInstant().atZone(ZoneId.systemDefault()).toLocalTime();
             LocalDateTime fechaHora = LocalDateTime.of(ld, lt);
 
-            GestorCitas.getInstancia().registrarCita(paciente, txtMedico.getText().trim(), fechaHora, txtMotivo.getText().trim());
+            GestorCitas.getInstancia().registrarCita(
+                    paciente, medico.getNombre(), fechaHora, txtMotivo.getText().trim(), sala.getNumero());
 
-            Validador.mostrarExito(this, "Cita registrada exitosamente!\nTipo de atencion: " + factory.crearMedico(0, "", "").getTipo());
-            txtMedico.setText(""); txtMotivo.setText("");
+            Validador.mostrarExito(this,
+                    "Cita registrada exitosamente!\n" +
+                            "Tipo de atencion: " + medico.getTipo() + "\n" +
+                            "Medico asignado: " + medico + "\n" +
+                            "Sala asignada: " + sala);
+            txtMedico.setText(""); txtEspecialidad.setText(""); txtMotivo.setText("");
 
-        } catch (ExcepcionesPersonalizadas.FechaInvalidaException ex) {
+        } catch (ExcepcionesPersonalizadas.FechaInvalidaException
+                 | ExcepcionesPersonalizadas.CitaDuplicadaException
+                 | ExcepcionesPersonalizadas.SalaOcupadaException ex) {
             Validador.mostrarError(this, ex.getMessage());
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error inesperado: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

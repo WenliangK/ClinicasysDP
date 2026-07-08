@@ -63,7 +63,13 @@ public class DashboardCitasPanel extends JPanel implements Observador {
             return;
         }
         int id = (int) modeloTabla.getValueAt(fila, 0);
-        GestorCitas.getInstancia().cambiarEstado(id, estado);
+        try {
+            GestorCitas.getInstancia().cambiarEstado(id, estado);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "No se pudo actualizar el estado de la cita: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     @Override
@@ -73,17 +79,23 @@ public class DashboardCitasPanel extends JPanel implements Observador {
     }
 
     public void cargarDatos() {
-        modeloTabla.setRowCount(0);
-        List<Cita> citas = GestorCitas.getInstancia().getCitas();
-        for (Cita c : citas) {
-            modeloTabla.addRow(new Object[]{
-                    c.getId(),
-                    c.getPaciente().getNombre(),
-                    c.getMedico(),
-                    c.getFechaFormateada(),
-                    c.getMotivo(),
-                    c.getEstado().name()
-            });
+        try {
+            modeloTabla.setRowCount(0);
+            List<Cita> citas = GestorCitas.getInstancia().getCitas();
+            for (Cita c : citas) {
+                modeloTabla.addRow(new Object[]{
+                        c.getId(),
+                        c.getPaciente().getNombre(),
+                        c.getMedico(),
+                        c.getFechaFormateada(),
+                        c.getMotivo(),
+                        c.getEstado().name()
+                });
+            }
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "No se pudo cargar la lista de citas: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
