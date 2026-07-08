@@ -54,7 +54,7 @@ public class PrincipalFrame extends JFrame {
             cardLayout.show(panelContenido, cardName);
             if (cardName.equals("DASHBOARD"))    dashboardPanel.cargarDatos();
             if (cardName.equals("PACIENTES"))    pacientesPanel.cargarTabla();
-            if (cardName.equals("NUEVA_CITA"))   nuevaCitaPanel.cargarPacientes();
+            if (cardName.equals("NUEVA_CITA")) { nuevaCitaPanel.cargarPacientes(); nuevaCitaPanel.cargarMedicos(); }
             if (cardName.equals("FACTURACION"))  facturacionPanel.cargarPacientes();
         });
         menu.add(btn);
