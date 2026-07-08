@@ -17,7 +17,11 @@ public class FacturaDAOImpl implements FacturaDAO {
 
     @Override
     public void insertar(Factura factura) throws SQLException {
+<<<<<<< HEAD
         String sql = "INSERT INTO facturacion (cita_id, monto_base, monto_adicional, total) VALUES (?, ?, ?, ?)";
+=======
+        String sql = "INSERT INTO facturas (cita_id, descripcion, costo, fecha_emision) VALUES (?, ?, ?, ?)";
+>>>>>>> 9c8d969 (Fix registro de citas y facturacion)
         Connection con = ConexionDB.getInstancia().getConexion();
         try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             if (factura.getCitaId() != null) {
