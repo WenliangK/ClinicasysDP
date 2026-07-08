@@ -3,6 +3,7 @@ import AbstractFactory.ClinicaFactory;
 import AbstractFactory.PrivadaFactory;
 import AbstractFactory.PublicaFactory;
 import Controlador.GestorCitas;
+import Controlador.GestorMedicos;
 import Controlador.GestorPacientes;
 import Modelo.Medico;
 import Modelo.Paciente;
@@ -21,8 +22,9 @@ import java.util.Date;
 public class NuevaCitaPanel extends JPanel {
 
     private JComboBox<Paciente> cbPaciente;
+    private JComboBox<Medico> cbMedico;
     private JComboBox<String> cbTipoAtencion;
-    private JTextField txtMedico, txtEspecialidad, txtMotivo;
+    private JTextField txtEspecialidad, txtMotivo;
     private JSpinner spinnerFecha, spinnerHora;
     private JSpinner spinnerSala;
 
@@ -48,8 +50,17 @@ public class NuevaCitaPanel extends JPanel {
 
         cbTipoAtencion = new JComboBox<>(new String[]{"PRIVADO", "PUBLICO (SIS)"});
 
-        txtMedico = new JTextField(20);
+        cbMedico = new JComboBox<>();
+        cbMedico.addActionListener(e -> actualizarEspecialidad());
+
         txtEspecialidad = new JTextField(20);
+        txtEspecialidad.setEditable(false);
+        txtMotivo = new JTextField(20);
+
+        cargarMedicos();
+
+        txtEspecialidad = new JTextField(20);
+        txtEspecialidad.setEditable(false);
         txtMotivo = new JTextField(20);
 
         spinnerSala = new JSpinner(new SpinnerNumberModel(1, 1, 20, 1));
@@ -62,7 +73,7 @@ public class NuevaCitaPanel extends JPanel {
 
         agregarFila(form, gbc, 0, "Paciente:", cbPaciente);
         agregarFila(form, gbc, 1, "Tipo de atencion:", cbTipoAtencion);
-        agregarFila(form, gbc, 2, "Medico asignado:", txtMedico);
+        agregarFila(form, gbc, 2, "Medico asignado:", cbMedico);
         agregarFila(form, gbc, 3, "Especialidad del medico:", txtEspecialidad);
         agregarFila(form, gbc, 4, "Sala:", spinnerSala);
         agregarFila(form, gbc, 5, "Motivo:", txtMotivo);
@@ -90,12 +101,27 @@ public class NuevaCitaPanel extends JPanel {
         if (seleccionado != null) cbPaciente.setSelectedItem(seleccionado);
     }
 
+    /** Recarga la lista de medicos (con su especialidad) desde la tabla "medicos" en el combo. */
+    public void cargarMedicos() {
+        Object seleccionado = cbMedico.getSelectedItem();
+        cbMedico.removeAllItems();
+        GestorMedicos.getInstancia().getTodos().forEach(cbMedico::addItem);
+        if (seleccionado != null) cbMedico.setSelectedItem(seleccionado);
+        actualizarEspecialidad();
+    }
+
+    /** Autocompleta el campo de especialidad segun el medico elegido en el combo. */
+    private void actualizarEspecialidad() {
+        Medico m = (Medico) cbMedico.getSelectedItem();
+        txtEspecialidad.setText(m != null ? m.getEspecialidad() : "");
+    }
+
     private void guardarCita() {
         try {
             Paciente paciente = (Paciente) cbPaciente.getSelectedItem();
             if (paciente == null) { Validador.mostrarError(this, "Selecciona un paciente."); return; }
-            if (txtMedico.getText().trim().isEmpty()) { Validador.mostrarError(this, "Ingresa el nombre del medico."); return; }
-            if (txtEspecialidad.getText().trim().isEmpty()) { Validador.mostrarError(this, "Ingresa la especialidad del medico."); return; }
+            Medico medicoSeleccionado = (Medico) cbMedico.getSelectedItem();
+            if (medicoSeleccionado == null) { Validador.mostrarError(this, "No hay medicos registrados. Registra uno en la tabla 'medicos'."); return; }
             if (txtMotivo.getText().trim().isEmpty())  { Validador.mostrarError(this, "Ingresa el motivo de la consulta."); return; }
 
             // --- AbstractFactory en accion: segun el tipo de atencion, se crea una FAMILIA
@@ -105,7 +131,8 @@ public class NuevaCitaPanel extends JPanel {
             ClinicaFactory factory = tipo.startsWith("PRIVADO") ? new PrivadaFactory() : new PublicaFactory();
 
             int numeroSala = (int) spinnerSala.getValue();
-            Medico medico = factory.crearMedico(0, txtMedico.getText().trim(), txtEspecialidad.getText().trim());
+            Medico medico = factory.crearMedico(
+                    medicoSeleccionado.getId(), medicoSeleccionado.getNombre(), medicoSeleccionado.getEspecialidad());
             Sala sala = factory.crearSala(numeroSala, "Consultorio de " + medico.getEspecialidad());
 
             Date fechaVal = (Date) spinnerFecha.getValue();
@@ -122,7 +149,7 @@ public class NuevaCitaPanel extends JPanel {
                             "Tipo de atencion: " + medico.getTipo() + "\n" +
                             "Medico asignado: " + medico + "\n" +
                             "Sala asignada: " + sala);
-            txtMedico.setText(""); txtEspecialidad.setText(""); txtMotivo.setText("");
+            txtMotivo.setText("");
 
         } catch (ExcepcionesPersonalizadas.FechaInvalidaException
                  | ExcepcionesPersonalizadas.CitaDuplicadaException
