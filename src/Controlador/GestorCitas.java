@@ -15,19 +15,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** CONTROLADOR de citas. Actua como puente entre la Vista y el CitaDAO; mantiene el Observer intacto. */
 public class GestorCitas implements Sujeto {
 
     private static GestorCitas instancia;
     private final CitaDAO citaDAO;
     private final List<Observador> observadores = new ArrayList<>();
-
-    /**
-     * Reserva de salas en memoria: registra que sala/horario ya estan ocupados
-     * para poder detectar choques (SalaOcupadaException) al registrar una nueva cita.
-     * Se reinicia si la aplicacion se reinicia; para persistirlo entre sesiones
-     * haria falta una tabla "reservas_sala" en la base de datos.
-     */
     private final Set<String> salasOcupadas = new HashSet<>();
 
     private GestorCitas() {
@@ -38,13 +30,6 @@ public class GestorCitas implements Sujeto {
         if (instancia == null) instancia = new GestorCitas();
         return instancia;
     }
-
-    /**
-     * Registra una cita nueva, validando:
-     * - Que la fecha no sea pasada (FechaInvalidaException).
-     * - Que el mismo paciente no tenga ya una cita con ese medico a esa misma hora (CitaDuplicadaException).
-     * - Que la sala asignada no este ocupada a esa misma hora (SalaOcupadaException).
-     */
     public Cita registrarCita(Paciente paciente, String medico,
                               LocalDateTime fechaHora, String motivo, int numeroSala)
             throws ExcepcionesPersonalizadas.FechaInvalidaException,

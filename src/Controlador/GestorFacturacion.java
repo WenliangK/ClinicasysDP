@@ -14,14 +14,6 @@ import java.sql.SQLException;
 public class GestorFacturacion {
 
     private final FacturaDAO facturaDAO = new FacturaDAOImpl();
-
-    /**
-     * Calcula el total de una cita base con los examenes seleccionados.
-     * @param descripcionCita  descripcion de la consulta
-     * @param conRadiografia   si se incluye radiografia (+S/ 30)
-     * @param conAnalisisSangre si se incluye analisis de sangre (+S/ 20)
-     * @return objeto Facturable con el costo y descripcion acumulados
-     */
     public Facturable calcularFactura(String descripcionCita,
                                       boolean conRadiografia,
                                       boolean conAnalisisSangre) {
@@ -37,7 +29,6 @@ public class GestorFacturacion {
         return factura;
     }
 
-    /** Genera un texto de boleta para mostrar en pantalla, incluyendo datos del paciente. */
     public String generarBoleta(Facturable factura, Paciente paciente) {
         String datosPaciente = (paciente != null)
                 ? String.format("Paciente: %s\nDNI:      %s\nTelefono: %s\n\n",
@@ -58,13 +49,6 @@ public class GestorFacturacion {
                 factura.getCosto()
         );
     }
-
-    /**
-     * Persiste en la base de datos la factura ya calculada por el Decorator.
-     * @param factura  resultado de calcularFactura(...)
-     * @param citaId   id de la cita asociada, o null si la factura no esta ligada a una cita guardada
-     * @param paciente paciente asociado a la boleta, o null si no se selecciono ninguno
-     */
     public Factura guardarFactura(Facturable factura, Integer citaId, Paciente paciente) {
         Factura f = (paciente != null)
                 ? new Factura(citaId, paciente.getId(), paciente.getNombre(), paciente.getDni(),

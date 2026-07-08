@@ -11,8 +11,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
-
-/** Panel de facturacion: demuestra el patron Decorator en accion y persiste la boleta via FacturaDAO. */
 public class FacturacionPanel extends JPanel {
 
     private final GestorFacturacion gestor = new GestorFacturacion();
@@ -77,7 +75,6 @@ public class FacturacionPanel extends JPanel {
         add(new JScrollPane(txtResultado), BorderLayout.CENTER);
     }
 
-    /** Carga la lista de pacientes desde la base de datos en el combo. Publico para poder refrescarlo al navegar aqui. */
     public void cargarPacientes() {
         comboPaciente.removeAllItems();
         comboPaciente.addItem(null); // opcion "sin paciente"
@@ -121,7 +118,6 @@ public class FacturacionPanel extends JPanel {
     private void guardar() {
         if (facturaCalculada == null) return;
         try {
-            // citaId = null: esta boleta no esta ligada a una cita especifica guardada.
             Factura f = gestor.guardarFactura(facturaCalculada, null, pacienteSeleccionado());
             JOptionPane.showMessageDialog(this,
                     "Factura #" + f.getId() + " guardada correctamente.",
@@ -133,7 +129,6 @@ public class FacturacionPanel extends JPanel {
         }
     }
 
-    /** Renderer simple para mostrar "(sin paciente)" cuando el item es null. */
     private static class DefaultListCellRendererPaciente extends DefaultListCellRenderer {
         @Override
         public Component getListCellRendererComponent(JList<?> list, Object value, int index,
