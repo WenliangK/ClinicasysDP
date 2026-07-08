@@ -11,11 +11,9 @@ public class ConexionDB {
     private Connection conexion = null;
 
     // Credenciales de tu servidor PostgreSQL en Neon
-<<<<<<< HEAD
-    private static final String URL = "jdbc:postgresql://ep-wild-term-aikaptzv-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require ";
-=======
+
     private static final String URL = "jdbc:postgresql://ep-wild-term-aikaptzv-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require";
->>>>>>> 9c8d969 (Fix registro de citas y facturacion)
+
     private static final String USER = "neondb_owner";
     private static final String PASSWORD = "npg_zrxZ8YMbn6mw";
 

@@ -41,7 +41,7 @@ public class NuevaCitaPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         cbPaciente = new JComboBox<>();
-        GestorPacientes.getInstancia().getTodos().forEach(cbPaciente::addItem);
+        cargarPacientes();
 
         cbTipoAtencion = new JComboBox<>(new String[]{"PRIVADO", "PUBLICO (SIS)"});
 
@@ -72,6 +72,14 @@ public class NuevaCitaPanel extends JPanel {
     private void agregarFila(JPanel p, GridBagConstraints g, int fila, String lbl, JComponent campo) {
         g.gridx = 0; g.gridy = fila; g.gridwidth = 1; p.add(new JLabel(lbl), g);
         g.gridx = 1; p.add(campo, g);
+    }
+
+    /** Recarga la lista de pacientes desde la base de datos en el combo. Publico para refrescarlo al navegar aqui. */
+    public void cargarPacientes() {
+        Object seleccionado = cbPaciente.getSelectedItem();
+        cbPaciente.removeAllItems();
+        GestorPacientes.getInstancia().getTodos().forEach(cbPaciente::addItem);
+        if (seleccionado != null) cbPaciente.setSelectedItem(seleccionado);
     }
 
     private void guardarCita() {

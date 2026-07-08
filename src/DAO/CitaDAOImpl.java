@@ -1,5 +1,6 @@
 package DAO;
 
+import DAO.CitaDAO;
 import Modelo.Cita;
 import Modelo.Paciente;
 import Singleton.ConexionDB;
@@ -13,38 +14,16 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * DAO de Cita. Como Cita guarda un objeto Paciente completo (no solo su id),
- * las lecturas hacen JOIN con la tabla pacientes para reconstruir ambos objetos
- * con una sola consulta.
- */
 public class CitaDAOImpl implements CitaDAO {
 
     private static final String SELECT_BASE =
-<<<<<<< HEAD
-            "SELECT c.id AS cita_id, c.medico_id, c.fecha_hora, c.motivo, c.estado, " +
-                    "p.id AS paciente_id, p.nombre, p.dni, p.email " +
-=======
             "SELECT c.id AS cita_id, c.medico, c.fecha_hora, c.motivo, c.estado, " +
                     "p.id AS paciente_id, p.nombre, p.dni, p.telefono, p.email " +
->>>>>>> 9c8d969 (Fix registro de citas y facturacion)
                     "FROM citas c " +
                     "JOIN pacientes p ON p.id = c.paciente_id ";
 
     @Override
     public void insertar(Cita cita) throws SQLException {
-<<<<<<< HEAD
-        String sql = "INSERT INTO citas (paciente_id, medico_id, sala_id, fecha_hora, estado) VALUES (?, ?, ?, ?, ?)";
-        Connection con = ConexionDB.getInstancia().getConexion();
-        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, cita.getPaciente().getId());
-            ps.setInt(2, cita.getMedicoId()); // Asegúrate de tener este campo en Modelo.Cita
-            ps.setInt(3, cita.getSalaId());   // Asegúrate de tener este campo en Modelo.Cita
-            ps.setTimestamp(4, Timestamp.valueOf(cita.getFechaHora()));
-            ps.setString(5, cita.getEstado().name());
-            ps.executeUpdate();
-            // ... (resto del código igual)
-=======
         String sql = "INSERT INTO citas (paciente_id, medico, fecha_hora, motivo, estado) VALUES (?, ?, ?, ?, ?)";
         Connection con = ConexionDB.getInstancia().getConexion();
         try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -54,7 +33,6 @@ public class CitaDAOImpl implements CitaDAO {
             ps.setString(4, cita.getMotivo());
             ps.setString(5, cita.getEstado().name());
             ps.executeUpdate();
->>>>>>> 9c8d969 (Fix registro de citas y facturacion)
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
@@ -124,11 +102,7 @@ public class CitaDAOImpl implements CitaDAO {
         Cita cita = new Cita(
                 rs.getInt("cita_id"),
                 paciente,
-<<<<<<< HEAD
-                rs.getString("medico_id"),
-=======
                 rs.getString("medico"),
->>>>>>> 9c8d969 (Fix registro de citas y facturacion)
                 rs.getTimestamp("fecha_hora").toLocalDateTime(),
                 rs.getString("motivo"),
                 Cita.Estado.valueOf(rs.getString("estado"))

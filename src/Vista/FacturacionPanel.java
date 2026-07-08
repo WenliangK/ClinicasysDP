@@ -1,17 +1,24 @@
 package Vista;
 
 import Controlador.GestorFacturacion;
+import DAO.PacienteDAO;
+import DAO.PacienteDAOImpl;
 import Decorator.Facturable;
 import Modelo.Factura;
+import Modelo.Paciente;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.SQLException;
+import java.util.List;
 
 /** Panel de facturacion: demuestra el patron Decorator en accion y persiste la boleta via FacturaDAO. */
 public class FacturacionPanel extends JPanel {
 
     private final GestorFacturacion gestor = new GestorFacturacion();
+    private final PacienteDAO pacienteDAO = new PacienteDAOImpl();
 
+    private JComboBox<Paciente> comboPaciente;
     private JTextField txtMotivo;
     private JCheckBox chkRadiografia, chkAnalisisSangre;
     private JTextArea txtResultado;
@@ -35,32 +42,60 @@ public class FacturacionPanel extends JPanel {
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.anchor = GridBagConstraints.WEST;
 
+        comboPaciente = new JComboBox<>();
+        cargarPacientes();
+
         txtMotivo = new JTextField(25);
         chkRadiografia    = new JCheckBox("Radiografia  (+S/ 30.00)");
         chkAnalisisSangre = new JCheckBox("Analisis de Sangre  (+S/ 20.00)");
 
-        gbc.gridx = 0; gbc.gridy = 0; form.add(new JLabel("Motivo de consulta:"), gbc);
+        gbc.gridx = 0; gbc.gridy = 0; form.add(new JLabel("Paciente:"), gbc);
+        gbc.gridx = 1; form.add(comboPaciente, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1; form.add(new JLabel("Motivo de consulta:"), gbc);
         gbc.gridx = 1; form.add(txtMotivo, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
+
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
         form.add(new JLabel("Examenes adicionales (Decorator):"), gbc);
-        gbc.gridy = 2; form.add(chkRadiografia, gbc);
-        gbc.gridy = 3; form.add(chkAnalisisSangre, gbc);
+        gbc.gridy = 3; form.add(chkRadiografia, gbc);
+        gbc.gridy = 4; form.add(chkAnalisisSangre, gbc);
 
         JButton btnCalcular = new JButton("Calcular y Generar Boleta");
         btnCalcular.addActionListener(e -> calcular());
-        gbc.gridy = 4; gbc.gridwidth = 2; form.add(btnCalcular, gbc);
+        gbc.gridy = 5; gbc.gridwidth = 2; form.add(btnCalcular, gbc);
 
         btnGuardar = new JButton("Guardar Factura en Base de Datos");
         btnGuardar.setEnabled(false);
         btnGuardar.addActionListener(e -> guardar());
-        gbc.gridy = 5; form.add(btnGuardar, gbc);
+        gbc.gridy = 6; form.add(btnGuardar, gbc);
 
         add(form, BorderLayout.WEST);
 
-        txtResultado = new JTextArea(12, 35);
+        txtResultado = new JTextArea(14, 35);
         txtResultado.setFont(new Font("Monospaced", Font.PLAIN, 13));
         txtResultado.setEditable(false);
         add(new JScrollPane(txtResultado), BorderLayout.CENTER);
+    }
+
+    /** Carga la lista de pacientes desde la base de datos en el combo. Publico para poder refrescarlo al navegar aqui. */
+    public void cargarPacientes() {
+        comboPaciente.removeAllItems();
+        comboPaciente.addItem(null); // opcion "sin paciente"
+        try {
+            List<Paciente> pacientes = pacienteDAO.listarTodos();
+            for (Paciente p : pacientes) {
+                comboPaciente.addItem(p);
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "No se pudo cargar la lista de pacientes: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        comboPaciente.setRenderer(new DefaultListCellRendererPaciente());
+    }
+
+    private Paciente pacienteSeleccionado() {
+        return (Paciente) comboPaciente.getSelectedItem();
     }
 
     private void calcular() {
@@ -75,7 +110,7 @@ public class FacturacionPanel extends JPanel {
                     chkRadiografia.isSelected(),
                     chkAnalisisSangre.isSelected()
             );
-            txtResultado.setText(gestor.generarBoleta(facturaCalculada));
+            txtResultado.setText(gestor.generarBoleta(facturaCalculada, pacienteSeleccionado()));
             btnGuardar.setEnabled(true);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
@@ -87,7 +122,7 @@ public class FacturacionPanel extends JPanel {
         if (facturaCalculada == null) return;
         try {
             // citaId = null: esta boleta no esta ligada a una cita especifica guardada.
-            Factura f = gestor.guardarFactura(facturaCalculada, null);
+            Factura f = gestor.guardarFactura(facturaCalculada, null, pacienteSeleccionado());
             JOptionPane.showMessageDialog(this,
                     "Factura #" + f.getId() + " guardada correctamente.",
                     "Exito", JOptionPane.INFORMATION_MESSAGE);
@@ -95,6 +130,16 @@ public class FacturacionPanel extends JPanel {
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(this,
                     "Error al guardar la factura: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /** Renderer simple para mostrar "(sin paciente)" cuando el item es null. */
+    private static class DefaultListCellRendererPaciente extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                      boolean isSelected, boolean cellHasFocus) {
+            String texto = (value == null) ? "(sin paciente)" : value.toString();
+            return super.getListCellRendererComponent(list, texto, index, isSelected, cellHasFocus);
         }
     }
 }
