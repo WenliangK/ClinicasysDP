@@ -17,7 +17,7 @@ import java.util.List;
 public class CitaDAOImpl implements CitaDAO {
 
     private static final String SELECT_BASE =
-            "SELECT c.id AS cita_id, c.medico, c.fecha_hora, c.motivo, c.estado, " +
+            "SELECT c.id AS cita_id, c.medico, c.fecha_hora, c.motivo, c.estado, c.fecha_actualizacion, " +
                     "p.id AS paciente_id, p.nombre, p.dni, p.telefono, p.email " +
                     "FROM citas c " +
                     "JOIN pacientes p ON p.id = c.paciente_id ";
@@ -44,7 +44,10 @@ public class CitaDAOImpl implements CitaDAO {
 
     @Override
     public void actualizarEstado(int citaId, Cita.Estado nuevoEstado) throws SQLException {
-        String sql = "UPDATE citas SET estado = ? WHERE id = ?";
+        boolean esEstadoFinal = nuevoEstado == Cita.Estado.ATENDIDO || nuevoEstado == Cita.Estado.CANCELADO;
+        String sql = esEstadoFinal
+                ? "UPDATE citas SET estado = ?, fecha_actualizacion = NOW() WHERE id = ?"
+                : "UPDATE citas SET estado = ? WHERE id = ?";
         Connection con = ConexionDB.getInstancia().getConexion();
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, nuevoEstado.name());
@@ -99,13 +102,16 @@ public class CitaDAOImpl implements CitaDAO {
         );
         paciente.setId(rs.getInt("paciente_id"));
 
+        Timestamp tsActualizacion = rs.getTimestamp("fecha_actualizacion");
+
         Cita cita = new Cita(
                 rs.getInt("cita_id"),
                 paciente,
                 rs.getString("medico"),
                 rs.getTimestamp("fecha_hora").toLocalDateTime(),
                 rs.getString("motivo"),
-                Cita.Estado.valueOf(rs.getString("estado"))
+                Cita.Estado.valueOf(rs.getString("estado")),
+                tsActualizacion != null ? tsActualizacion.toLocalDateTime() : null
         );
         return cita;
     }
