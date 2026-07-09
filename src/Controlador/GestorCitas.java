@@ -11,14 +11,16 @@ import Utilidades.ExcepcionesPersonalizadas;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-/** CONTROLADOR de citas. Actua como puente entre la Vista y el CitaDAO; mantiene el Observer intacto. */
 public class GestorCitas implements Sujeto {
 
     private static GestorCitas instancia;
     private final CitaDAO citaDAO;
     private final List<Observador> observadores = new ArrayList<>();
+    private final Set<String> salasOcupadas = new HashSet<>();
 
     private GestorCitas() {
         this.citaDAO = new CitaDAOImpl();
@@ -28,19 +30,40 @@ public class GestorCitas implements Sujeto {
         if (instancia == null) instancia = new GestorCitas();
         return instancia;
     }
-
     public Cita registrarCita(Paciente paciente, String medico,
-                               LocalDateTime fechaHora, String motivo)
-            throws ExcepcionesPersonalizadas.FechaInvalidaException {
+                              LocalDateTime fechaHora, String motivo, int numeroSala)
+            throws ExcepcionesPersonalizadas.FechaInvalidaException,
+            ExcepcionesPersonalizadas.CitaDuplicadaException,
+            ExcepcionesPersonalizadas.SalaOcupadaException {
+
         if (fechaHora.isBefore(LocalDateTime.now())) {
             throw new ExcepcionesPersonalizadas.FechaInvalidaException();
         }
+
+        boolean yaExiste = getCitas().stream().anyMatch(c ->
+                c.getPaciente().getId() == paciente.getId()
+                        && c.getMedico().equalsIgnoreCase(medico)
+                        && c.getFechaHora().equals(fechaHora)
+                        && c.getEstado() != Cita.Estado.CANCELADO
+        );
+        if (yaExiste) {
+            throw new ExcepcionesPersonalizadas.CitaDuplicadaException(
+                    "El paciente " + paciente.getNombre() + " ya tiene una cita con " + medico + " a esa misma hora.");
+        }
+
+        String claveSala = numeroSala + "@" + fechaHora;
+        if (salasOcupadas.contains(claveSala)) {
+            throw new ExcepcionesPersonalizadas.SalaOcupadaException(numeroSala);
+        }
+
         Cita nueva = new Cita(paciente, medico, fechaHora, motivo);
         try {
             citaDAO.insertar(nueva);
         } catch (SQLException e) {
             throw new RuntimeException("Error al registrar la cita en la base de datos: " + e.getMessage(), e);
         }
+
+        salasOcupadas.add(claveSala);
         notificar("NUEVA_CITA", nueva.getId());
         return nueva;
     }
@@ -69,6 +92,21 @@ public class GestorCitas implements Sujeto {
     public List<Cita> getCitasActivas() {
         return getCitas().stream()
                 .filter(c -> c.getEstado() != Cita.Estado.CANCELADO)
+                .toList();
+    }
+
+    /** Citas que aun se estan gestionando en el dia a dia: en espera o en consultorio. */
+    public List<Cita> getCitasVigentes() {
+        return getCitas().stream()
+                .filter(c -> c.getEstado() == Cita.Estado.EN_ESPERA || c.getEstado() == Cita.Estado.EN_CONSULTORIO)
+                .toList();
+    }
+
+    /** Historial de citas ya finalizadas (atendidas o canceladas), ordenadas por ID. */
+    public List<Cita> getHistorial() {
+        return getCitas().stream()
+                .filter(c -> c.getEstado() == Cita.Estado.ATENDIDO || c.getEstado() == Cita.Estado.CANCELADO)
+                .sorted(java.util.Comparator.comparingInt(Cita::getId))
                 .toList();
     }
 

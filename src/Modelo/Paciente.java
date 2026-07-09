@@ -7,9 +7,6 @@ public class Paciente {
     private String telefono;
     private String email;
 
-    /**
-     * Constructor completo: usado por el DAO al reconstruir un registro existente de la BD.
-     */
     public Paciente(int id, String nombre, String dni, String telefono, String email) {
         this.id = id;
         this.nombre = nombre;
@@ -18,10 +15,6 @@ public class Paciente {
         this.email = email;
     }
 
-    /**
-     * Constructor sin id: usado al crear un paciente nuevo, antes de insertarlo en la BD.
-     * El id real lo asigna PostgreSQL (SERIAL) y el DAO lo setea con setId().
-     */
     public Paciente(String nombre, String dni, String telefono, String email) {
         this(0, nombre, dni, telefono, email);
     }
@@ -64,7 +57,6 @@ public class Paciente {
 
     @Override
     public String toString() {
-        // Esto es lo que se verá en el desplegable
         return this.nombre + " - " + this.dni;
     }
 }

@@ -23,7 +23,6 @@ public class PacienteDAOImpl implements PacienteDAO {
             ps.setString(3, paciente.getTelefono());
             ps.setString(4, paciente.getEmail());
             ps.executeUpdate();
-            // ...
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {

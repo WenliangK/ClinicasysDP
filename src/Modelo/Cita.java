@@ -14,6 +14,7 @@ public class Cita {
     private String motivo;
     private int medicoId;
     private int salaId;
+    private LocalDateTime fechaActualizacion;
 
     public int getMedicoId() {
         return this.medicoId;
@@ -22,25 +23,27 @@ public class Cita {
     public int getSalaId() {
         return this.salaId;
     }
-
-    /** Constructor para una cita nueva (todavia no existe en la BD): id=0, estado=EN_ESPERA. */
     public Cita(Paciente paciente, String medico, LocalDateTime fechaHora, String motivo) {
         this(0, paciente, medico, fechaHora, motivo, Estado.EN_ESPERA);
     }
 
-    /** Constructor de compatibilidad (sin estado explicito), usado por codigo previo. */
     public Cita(int id, Paciente paciente, String medico, LocalDateTime fechaHora, String motivo) {
         this(id, paciente, medico, fechaHora, motivo, Estado.EN_ESPERA);
     }
 
-    /** Constructor completo: usado por el DAO al reconstruir una fila existente de la BD. */
     public Cita(int id, Paciente paciente, String medico, LocalDateTime fechaHora, String motivo, Estado estado) {
+        this(id, paciente, medico, fechaHora, motivo, estado, null);
+    }
+
+    public Cita(int id, Paciente paciente, String medico, LocalDateTime fechaHora, String motivo,
+                Estado estado, LocalDateTime fechaActualizacion) {
         this.id = id;
         this.paciente = paciente;
         this.medico = medico;
         this.fechaHora = fechaHora;
         this.motivo = motivo;
         this.estado = estado;
+        this.fechaActualizacion = fechaActualizacion;
     }
 
     public int getId()                  { return id; }
@@ -49,12 +52,21 @@ public class Cita {
     public LocalDateTime getFechaHora()  { return fechaHora; }
     public Estado getEstado()            { return estado; }
     public String getMotivo()            { return motivo; }
+    public LocalDateTime getFechaActualizacion() { return fechaActualizacion; }
 
     public void setId(int id)             { this.id = id; }
     public void setEstado(Estado estado) { this.estado = estado; }
+    public void setFechaActualizacion(LocalDateTime fechaActualizacion) { this.fechaActualizacion = fechaActualizacion; }
 
     public String getFechaFormateada() {
         return fechaHora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+    }
+
+    /** Fecha/hora en que la cita paso a ATENDIDO o CANCELADO. "-" si aun no se ha definido. */
+    public String getFechaActualizacionFormateada() {
+        return fechaActualizacion != null
+                ? fechaActualizacion.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                : "-";
     }
 
     @Override

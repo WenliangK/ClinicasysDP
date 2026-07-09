@@ -5,22 +5,16 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class ConexionDB {
-
-    // VARIABLES CORREGIDAS (Faltaba declararlas a nivel de clase)
     private static ConexionDB instancia = null;
     private Connection conexion = null;
 
-    // Credenciales de tu servidor PostgreSQL en Neon
-    private static final String URL = "jdbc:postgresql://ep-wild-term-aikaptzv.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require";
+    private static final String URL = "jdbc:postgresql://ep-wild-term-aikaptzv-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require";
     private static final String USER = "neondb_owner";
-    private static final String PASSWORD = "npg_c8SWdAToQKY4";
-
-    // CONSTRUCTOR PRIVADO (Obligatorio para el patrón Singleton)
+    private static final String PASSWORD = "npg_zrxZ8YMbn6mw";
     private ConexionDB() {
         conectar();
     }
 
-    /** Método estático alternativo por si tu código viejo lo invoca directamente */
     public static Connection obtenerConexion() {
         try {
             return DriverManager.getConnection(URL, USER, PASSWORD);
@@ -30,7 +24,6 @@ public class ConexionDB {
         }
     }
 
-    // Método interno corregido (Se cambió 'USUARIO' por 'USER')
     private void conectar() {
         try {
             conexion = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -41,7 +34,6 @@ public class ConexionDB {
         }
     }
 
-    // Retorna la instancia única de la clase (Singleton hilos-seguro)
     public static ConexionDB getInstancia() {
         if (instancia == null) {
             synchronized (ConexionDB.class) {
@@ -53,7 +45,6 @@ public class ConexionDB {
         return instancia;
     }
 
-    /** Devuelve la conexión activa; la reabre si se cerró inesperadamente. */
     public Connection getConexion() {
         try {
             if (conexion == null || conexion.isClosed()) {
