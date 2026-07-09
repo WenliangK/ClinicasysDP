@@ -6,10 +6,17 @@ import DAO.PacienteDAOImpl;
 import Decorator.Facturable;
 import Modelo.Factura;
 import Modelo.Paciente;
+import Singleton.GestorConfiguracion;
+import Utilidades.GeneradorFacturaImagen;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 public class FacturacionPanel extends JPanel {
 
@@ -20,8 +27,9 @@ public class FacturacionPanel extends JPanel {
     private JTextField txtMotivo;
     private JCheckBox chkRadiografia, chkAnalisisSangre;
     private JTextArea txtResultado;
-    private JButton btnGuardar;
+    private JButton btnGuardar, btnDescargarImagen;
     private Facturable facturaCalculada; // ultima factura calculada, pendiente de guardar
+    private Factura facturaGuardada;     // factura ya persistida, lista para exportar como imagen
 
     public FacturacionPanel() {
         setLayout(new BorderLayout(10, 10));
@@ -67,6 +75,11 @@ public class FacturacionPanel extends JPanel {
         btnGuardar.addActionListener(e -> guardar());
         gbc.gridy = 6; form.add(btnGuardar, gbc);
 
+        btnDescargarImagen = new JButton("Descargar Factura (Imagen)");
+        btnDescargarImagen.setEnabled(false);
+        btnDescargarImagen.addActionListener(e -> descargarImagen());
+        gbc.gridy = 7; form.add(btnDescargarImagen, gbc);
+
         add(form, BorderLayout.WEST);
 
         txtResultado = new JTextArea(14, 35);
@@ -109,6 +122,8 @@ public class FacturacionPanel extends JPanel {
             );
             txtResultado.setText(gestor.generarBoleta(facturaCalculada, pacienteSeleccionado()));
             btnGuardar.setEnabled(true);
+            facturaGuardada = null;
+            btnDescargarImagen.setEnabled(false);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "Error al calcular: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -123,10 +138,66 @@ public class FacturacionPanel extends JPanel {
                     "Factura #" + f.getId() + " guardada correctamente.",
                     "Exito", JOptionPane.INFORMATION_MESSAGE);
             btnGuardar.setEnabled(false);
+            facturaGuardada = f;
+            btnDescargarImagen.setEnabled(true);
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(this,
                     "Error al guardar la factura: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void descargarImagen() {
+        if (facturaGuardada == null) {
+            JOptionPane.showMessageDialog(this, "Primero guarda la factura.",
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try {
+            Paciente paciente = pacienteSeleccionado();
+            List<GeneradorFacturaImagen.ItemFactura> items = construirItems();
+
+            BufferedImage imagen = GeneradorFacturaImagen.generar(
+                    GestorConfiguracion.getInstancia().getNombreClinica(),
+                    facturaGuardada.getId(),
+                    facturaGuardada.getFechaEmision(),
+                    paciente != null ? paciente.getNombre() : null,
+                    paciente != null ? paciente.getDni() : null,
+                    paciente != null ? paciente.getTelefono() : null,
+                    txtMotivo.getText().trim(),
+                    items
+            );
+
+            JFileChooser chooser = new JFileChooser();
+            chooser.setSelectedFile(new File("factura_" + facturaGuardada.getId() + ".png"));
+            int seleccion = chooser.showSaveDialog(this);
+            if (seleccion != JFileChooser.APPROVE_OPTION) return;
+
+            File destino = chooser.getSelectedFile();
+            if (!destino.getName().toLowerCase().endsWith(".png")) {
+                destino = new File(destino.getParentFile(), destino.getName() + ".png");
+            }
+            ImageIO.write(imagen, "png", destino);
+
+            JOptionPane.showMessageDialog(this,
+                    "Factura guardada como imagen en:\n" + destino.getAbsolutePath(),
+                    "Descarga exitosa", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "No se pudo generar la imagen: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /** Traduce el motivo + examenes seleccionados en las filas de la tabla de la factura. */
+    private List<GeneradorFacturaImagen.ItemFactura> construirItems() {
+        List<GeneradorFacturaImagen.ItemFactura> items = new ArrayList<>();
+        items.add(new GeneradorFacturaImagen.ItemFactura(1, "Consulta medica: " + txtMotivo.getText().trim(), 50.00));
+        if (chkRadiografia.isSelected()) {
+            items.add(new GeneradorFacturaImagen.ItemFactura(1, "Radiografia", 30.00));
+        }
+        if (chkAnalisisSangre.isSelected()) {
+            items.add(new GeneradorFacturaImagen.ItemFactura(1, "Analisis de Sangre", 20.00));
+        }
+        return items;
     }
 
     private static class DefaultListCellRendererPaciente extends DefaultListCellRenderer {
