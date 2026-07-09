@@ -31,6 +31,15 @@ public class GestorMedicos {
         return m;
     }
 
+    public void actualizar(int id, String nombre, String especialidad, String tipo) {
+        Medico m = new Medico(id, nombre, especialidad, tipo);
+        try {
+            medicoDAO.actualizar(m);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al actualizar el medico: " + e.getMessage(), e);
+        }
+    }
+
     public void eliminar(int id) {
         try {
             medicoDAO.eliminar(id);

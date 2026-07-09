@@ -59,10 +59,6 @@ public class NuevaCitaPanel extends JPanel {
 
         cargarMedicos();
 
-        txtEspecialidad = new JTextField(20);
-        txtEspecialidad.setEditable(false);
-        txtMotivo = new JTextField(20);
-
         spinnerSala = new JSpinner(new SpinnerNumberModel(1, 1, 20, 1));
 
         spinnerFecha = new JSpinner(new SpinnerDateModel());

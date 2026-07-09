@@ -14,6 +14,9 @@ public class DashboardCitasPanel extends JPanel implements Observador {
     private DefaultTableModel modeloTabla;
     private JLabel lblEstado;
 
+    /** Se ejecuta cuando una cita pasa a ATENDIDO o CANCELADO, para poder navegar al historial. */
+    private Runnable onCitaFinalizada;
+
     public DashboardCitasPanel() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -22,8 +25,12 @@ public class DashboardCitasPanel extends JPanel implements Observador {
         cargarDatos();
     }
 
+    public void setOnCitaFinalizada(Runnable callback) {
+        this.onCitaFinalizada = callback;
+    }
+
     private void inicializarComponentes() {
-        JLabel titulo = new JLabel("Dashboard de Citas");
+        JLabel titulo = new JLabel("Dashboard de Citas Vigentes");
         titulo.setFont(new Font("SansSerif", Font.BOLD, 20));
         add(titulo, BorderLayout.NORTH);
 
@@ -76,12 +83,19 @@ public class DashboardCitasPanel extends JPanel implements Observador {
     public void actualizar(String nuevoEstado, int citaId) {
         cargarDatos();
         lblEstado.setText("Cita #" + citaId + " -> " + nuevoEstado);
+
+        boolean esFinal = "ATENDIDO".equals(nuevoEstado) || "CANCELADO".equals(nuevoEstado);
+        if (esFinal && onCitaFinalizada != null) {
+            onCitaFinalizada.run();
+        }
     }
 
     public void cargarDatos() {
         try {
             modeloTabla.setRowCount(0);
-            List<Cita> citas = GestorCitas.getInstancia().getCitas();
+            // Solo mostramos las citas que aun estan en curso (en espera / en consultorio).
+            // Las atendidas o canceladas se consultan en el Historial de Citas.
+            List<Cita> citas = GestorCitas.getInstancia().getCitasVigentes();
             for (Cita c : citas) {
                 modeloTabla.addRow(new Object[]{
                         c.getId(),

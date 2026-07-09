@@ -10,8 +10,10 @@ public class PrincipalFrame extends JFrame {
 
     private DashboardCitasPanel dashboardPanel;
     private PacientesPanel pacientesPanel;
+    private MedicosPanel medicosPanel;
     private NuevaCitaPanel nuevaCitaPanel;
     private FacturacionPanel facturacionPanel;
+    private HistorialCitasPanel historialPanel;
 
     public PrincipalFrame() {
         String nombreClinica = GestorConfiguracion.getInstancia().getNombreClinica();
@@ -39,7 +41,9 @@ public class PrincipalFrame extends JFrame {
 
         agregarBotonMenu(menu, "Dashboard Citas",  "DASHBOARD");
         agregarBotonMenu(menu, "Nueva Cita",       "NUEVA_CITA");
+        agregarBotonMenu(menu, "Historial Citas",  "HISTORIAL");
         agregarBotonMenu(menu, "Pacientes",        "PACIENTES");
+        agregarBotonMenu(menu, "Medicos",          "MEDICOS");
         agregarBotonMenu(menu, "Facturacion",      "FACTURACION");
 
         add(menu, BorderLayout.WEST);
@@ -54,6 +58,8 @@ public class PrincipalFrame extends JFrame {
             cardLayout.show(panelContenido, cardName);
             if (cardName.equals("DASHBOARD"))    dashboardPanel.cargarDatos();
             if (cardName.equals("PACIENTES"))    pacientesPanel.cargarTabla();
+            if (cardName.equals("MEDICOS"))      medicosPanel.cargarTabla();
+            if (cardName.equals("HISTORIAL"))    historialPanel.cargarDatos();
             if (cardName.equals("NUEVA_CITA")) { nuevaCitaPanel.cargarPacientes(); nuevaCitaPanel.cargarMedicos(); }
             if (cardName.equals("FACTURACION"))  facturacionPanel.cargarPacientes();
         });
@@ -67,12 +73,23 @@ public class PrincipalFrame extends JFrame {
 
         dashboardPanel   = new DashboardCitasPanel();
         pacientesPanel   = new PacientesPanel();
+        medicosPanel     = new MedicosPanel();
         nuevaCitaPanel   = new NuevaCitaPanel();
         facturacionPanel = new FacturacionPanel();
+        historialPanel   = new HistorialCitasPanel();
+
+        // Cuando una cita del dashboard se marca ATENDIDO o CANCELADO,
+        // se refresca el historial y se navega automaticamente hacia el.
+        dashboardPanel.setOnCitaFinalizada(() -> {
+            historialPanel.cargarDatos();
+            cardLayout.show(panelContenido, "HISTORIAL");
+        });
 
         panelContenido.add(dashboardPanel,   "DASHBOARD");
         panelContenido.add(nuevaCitaPanel,   "NUEVA_CITA");
+        panelContenido.add(historialPanel,   "HISTORIAL");
         panelContenido.add(pacientesPanel,   "PACIENTES");
+        panelContenido.add(medicosPanel,     "MEDICOS");
         panelContenido.add(facturacionPanel, "FACTURACION");
 
         add(panelContenido, BorderLayout.CENTER);
