@@ -8,10 +8,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-/**
- * Historial de citas ya finalizadas (ATENDIDO o CANCELADO), ordenadas por ID.
- * Incluye la fecha/hora en que la cita fue atendida o cancelada.
- */
 public class HistorialCitasPanel extends JPanel {
 
     private JTable tablaHistorial;

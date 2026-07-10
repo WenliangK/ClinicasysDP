@@ -3,8 +3,8 @@ package Modelo;
 import java.time.LocalDateTime;
 public class Factura {
     private int id;
-    private Integer citaId;       // puede ser null si la factura no esta asociada a una cita guardada
-    private Integer pacienteId;   // puede ser null si no se selecciono paciente
+    private Integer citaId;
+    private Integer pacienteId;
     private String pacienteNombre;
     private String pacienteDni;
     private String descripcion;

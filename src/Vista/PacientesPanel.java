@@ -17,7 +17,6 @@ public class PacientesPanel extends JPanel {
     private JTable tablaPacientes;
     private DefaultTableModel modeloTabla;
 
-    /** ID del paciente actualmente cargado en el formulario para edicion. 0 = ninguno (modo "nuevo"). */
     private int idSeleccionado = 0;
 
     private JButton btnRegistrar, btnActualizar, btnEliminar, btnLimpiar;

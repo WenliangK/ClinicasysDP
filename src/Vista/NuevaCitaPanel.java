@@ -89,7 +89,6 @@ public class NuevaCitaPanel extends JPanel {
         g.gridx = 1; p.add(campo, g);
     }
 
-    /** Recarga la lista de pacientes desde la base de datos en el combo. Publico para refrescarlo al navegar aqui. */
     public void cargarPacientes() {
         Object seleccionado = cbPaciente.getSelectedItem();
         cbPaciente.removeAllItems();
@@ -97,7 +96,6 @@ public class NuevaCitaPanel extends JPanel {
         if (seleccionado != null) cbPaciente.setSelectedItem(seleccionado);
     }
 
-    /** Recarga la lista de medicos (con su especialidad) desde la tabla "medicos" en el combo. */
     public void cargarMedicos() {
         Object seleccionado = cbMedico.getSelectedItem();
         cbMedico.removeAllItems();
@@ -106,7 +104,6 @@ public class NuevaCitaPanel extends JPanel {
         actualizarEspecialidad();
     }
 
-    /** Autocompleta el campo de especialidad segun el medico elegido en el combo. */
     private void actualizarEspecialidad() {
         Medico m = (Medico) cbMedico.getSelectedItem();
         txtEspecialidad.setText(m != null ? m.getEspecialidad() : "");
@@ -120,9 +117,6 @@ public class NuevaCitaPanel extends JPanel {
             if (medicoSeleccionado == null) { Validador.mostrarError(this, "No hay medicos registrados. Registra uno en la tabla 'medicos'."); return; }
             if (txtMotivo.getText().trim().isEmpty())  { Validador.mostrarError(this, "Ingresa el motivo de la consulta."); return; }
 
-            // --- AbstractFactory en accion: segun el tipo de atencion, se crea una FAMILIA
-            // de objetos relacionados (Medico + Sala) con reglas propias de cada tipo de clinica
-            // (ej. las salas privadas se marcan "[Premium]", las publicas "[SIS]"). ---
             String tipo = (String) cbTipoAtencion.getSelectedItem();
             ClinicaFactory factory = tipo.startsWith("PRIVADO") ? new PrivadaFactory() : new PublicaFactory();
 
