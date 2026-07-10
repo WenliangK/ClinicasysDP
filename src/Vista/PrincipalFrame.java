@@ -78,8 +78,6 @@ public class PrincipalFrame extends JFrame {
         facturacionPanel = new FacturacionPanel();
         historialPanel   = new HistorialCitasPanel();
 
-        // Cuando una cita del dashboard se marca ATENDIDO o CANCELADO,
-        // se refresca el historial y se navega automaticamente hacia el.
         dashboardPanel.setOnCitaFinalizada(() -> {
             historialPanel.cargarDatos();
             cardLayout.show(panelContenido, "HISTORIAL");

@@ -14,7 +14,6 @@ public class DashboardCitasPanel extends JPanel implements Observador {
     private DefaultTableModel modeloTabla;
     private JLabel lblEstado;
 
-    /** Se ejecuta cuando una cita pasa a ATENDIDO o CANCELADO, para poder navegar al historial. */
     private Runnable onCitaFinalizada;
 
     public DashboardCitasPanel() {
@@ -93,8 +92,6 @@ public class DashboardCitasPanel extends JPanel implements Observador {
     public void cargarDatos() {
         try {
             modeloTabla.setRowCount(0);
-            // Solo mostramos las citas que aun estan en curso (en espera / en consultorio).
-            // Las atendidas o canceladas se consultan en el Historial de Citas.
             List<Cita> citas = GestorCitas.getInstancia().getCitasVigentes();
             for (Cita c : citas) {
                 modeloTabla.addRow(new Object[]{

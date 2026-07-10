@@ -95,14 +95,14 @@ public class GestorCitas implements Sujeto {
                 .toList();
     }
 
-    /** Citas que aun se estan gestionando en el dia a dia: en espera o en consultorio. */
+
     public List<Cita> getCitasVigentes() {
         return getCitas().stream()
                 .filter(c -> c.getEstado() == Cita.Estado.EN_ESPERA || c.getEstado() == Cita.Estado.EN_CONSULTORIO)
                 .toList();
     }
 
-    /** Historial de citas ya finalizadas (atendidas o canceladas), ordenadas por ID. */
+
     public List<Cita> getHistorial() {
         return getCitas().stream()
                 .filter(c -> c.getEstado() == Cita.Estado.ATENDIDO || c.getEstado() == Cita.Estado.CANCELADO)

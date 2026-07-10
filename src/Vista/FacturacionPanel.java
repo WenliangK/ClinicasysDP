@@ -28,8 +28,8 @@ public class FacturacionPanel extends JPanel {
     private JCheckBox chkRadiografia, chkAnalisisSangre;
     private JTextArea txtResultado;
     private JButton btnGuardar, btnDescargarImagen;
-    private Facturable facturaCalculada; // ultima factura calculada, pendiente de guardar
-    private Factura facturaGuardada;     // factura ya persistida, lista para exportar como imagen
+    private Facturable facturaCalculada;
+    private Factura facturaGuardada;
 
     public FacturacionPanel() {
         setLayout(new BorderLayout(10, 10));
@@ -187,7 +187,6 @@ public class FacturacionPanel extends JPanel {
         }
     }
 
-    /** Traduce el motivo + examenes seleccionados en las filas de la tabla de la factura. */
     private List<GeneradorFacturaImagen.ItemFactura> construirItems() {
         List<GeneradorFacturaImagen.ItemFactura> items = new ArrayList<>();
         items.add(new GeneradorFacturaImagen.ItemFactura(1, "Consulta medica: " + txtMotivo.getText().trim(), 50.00));

@@ -62,7 +62,6 @@ public class Cita {
         return fechaHora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }
 
-    /** Fecha/hora en que la cita paso a ATENDIDO o CANCELADO. "-" si aun no se ha definido. */
     public String getFechaActualizacionFormateada() {
         return fechaActualizacion != null
                 ? fechaActualizacion.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))

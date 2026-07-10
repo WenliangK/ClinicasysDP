@@ -7,24 +7,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-/**
- * Genera una imagen PNG con el diseño de una factura/boleta de atencion,
- * lista para descargar y compartir con el paciente.
- */
+
 public class GeneradorFacturaImagen {
 
-    // ======================================================================
-    //  DATOS DE CONTACTO DE LA CLINICA (no vienen de la base de datos: edita
-    //  estas 3 lineas con los datos reales de tu clinica cuando los tengas).
-    // ======================================================================
     private static final String OFICINA_DIRECCION = "Av. Los Pinos 456, San Isidro, Lima";
     private static final String TELEFONO_CONTACTO  = "(01) 456-7890";
     private static final String EMAIL_CONTACTO      = "contacto@clinicasanrafael.com";
     private static final String SITIO_WEB           = "www.clinicasanrafael.com";
 
-    // ======================================================================
-    //  COLORES Y ESTILO (edita aqui para cambiar la paleta de la factura)
-    // ======================================================================
     private static final Color FONDO = new Color(0xFC, 0xF7, 0xE8);
     private static final Color AZUL  = new Color(0x16, 0x14, 0xA6);
 
@@ -32,7 +22,6 @@ public class GeneradorFacturaImagen {
     private static final int H = 1150;
     private static final int MARGIN = 60;
 
-    /** Un renglon de la tabla de servicios facturados. */
     public static class ItemFactura {
         public final int cantidad;
         public final String producto;
@@ -47,18 +36,6 @@ public class GeneradorFacturaImagen {
         public double getTotal() { return cantidad * precioUnitario; }
     }
 
-    /**
-     * Genera la imagen de la factura.
-     *
-     * @param nombreClinica     nombre de la clinica (se usa para el logo y encabezado)
-     * @param numeroFactura     numero/ID de la factura ya guardada en la base de datos
-     * @param fecha             fecha de emision
-     * @param pacienteNombre    nombre del paciente, o null si es "particular"
-     * @param pacienteDni       DNI del paciente, o null si no aplica
-     * @param pacienteTelefono  telefono del paciente, o null si no aplica
-     * @param motivo            motivo de la consulta
-     * @param items             detalle de servicios facturados
-     */
     public static BufferedImage generar(String nombreClinica, int numeroFactura, LocalDateTime fecha,
                                         String pacienteNombre, String pacienteDni, String pacienteTelefono,
                                         String motivo, List<ItemFactura> items) {
@@ -83,7 +60,7 @@ public class GeneradorFacturaImagen {
         Font fTitulo = new Font("DejaVu Sans", Font.BOLD, 52);
         Font fSmall  = new Font("DejaVu Sans Mono", Font.PLAIN, 15);
 
-        // ---- Logo (caja con iniciales) arriba a la derecha ----
+
         String iniciales = obtenerIniciales(nombreClinica);
         int boxSize = 88;
         int boxX = W - MARGIN - boxSize;
@@ -101,7 +78,6 @@ public class GeneradorFacturaImagen {
         int nombreW = fmClinica.stringWidth(nombreClinicaUpper);
         g.drawString(nombreClinicaUpper, boxX + boxSize / 2f - nombreW / 2f, boxY + boxSize + 24);
 
-        // ---- Titulo ----
         int y = 100;
         g.setFont(fTitulo);
         g.drawString("FACTURA", MARGIN, y);
@@ -121,7 +97,6 @@ public class GeneradorFacturaImagen {
         g.setStroke(new BasicStroke(2.2f));
         g.drawLine(MARGIN, y, W - MARGIN, y);
 
-        // ---- Datos del paciente (columna izquierda) ----
         int leftColW = 330;
         int leftX = MARGIN;
         y += 55;
@@ -148,7 +123,6 @@ public class GeneradorFacturaImagen {
         y += 20;
         g.drawString("Metodo de pago: Efectivo / Tarjeta", leftX, y);
 
-        // ---- Terminos y condiciones (caja abajo izquierda) ----
         int termY = 700;
         int termW = leftColW - 20;
         int termH = 260;
@@ -172,7 +146,6 @@ public class GeneradorFacturaImagen {
             ty += 20;
         }
 
-        // ---- Tabla (columna derecha) ----
         int tableX = leftX + leftColW + 30;
         int tableW = W - MARGIN - tableX;
         int rowH = 44;
@@ -208,16 +181,14 @@ public class GeneradorFacturaImagen {
             g.drawLine(colCant, rowY + rowH, colCant + tableW, rowY + rowH);
             rowY += rowH;
         }
-        // filas vacias extra para dar el look de plantilla impresa
+
         for (int i = 0; i < 5; i++) {
             g.drawLine(colCant, rowY + rowH, colCant + tableW, rowY + rowH);
             rowY += rowH;
         }
 
-        // ---- Totales ----
-        // Medimos el ancho real de cada texto antes de posicionarlo, para que la
-        // etiqueta y el monto nunca se superpongan sin importar el tamano de fuente.
-        int valueRight = W - MARGIN; // alineado al borde derecho de la tabla/pagina
+
+        int valueRight = W - MARGIN;
         Font fTotalBold = new Font("DejaVu Sans", Font.BOLD, 24);
 
         int totY = rowY + 46;
@@ -234,7 +205,6 @@ public class GeneradorFacturaImagen {
         drawParEtiquetaValor(g, "Total:", fTotalBold,
                 String.format(java.util.Locale.US, "S/ %.2f", total), fTotalBold, valueRight, totY);
 
-        // ---- Footer ----
         int footerY = H - 90;
         g.setStroke(new BasicStroke(2f));
         g.drawLine(MARGIN, footerY, W - MARGIN, footerY);
@@ -273,19 +243,13 @@ public class GeneradorFacturaImagen {
         g.drawString(texto, x + w - tw - 10, y + h / 2f + fm.getAscent() / 2f - 3);
     }
 
-    /** Dibuja texto terminando exactamente en endX (alineado a la derecha), en la linea base baselineY. */
+
     private static void drawRightAt(Graphics2D g, String texto, int endX, int baselineY) {
         FontMetrics fm = g.getFontMetrics();
         int tw = fm.stringWidth(texto);
         g.drawString(texto, endX - tw, baselineY);
     }
 
-    /**
-     * Dibuja un par "etiqueta: monto" donde el monto termina en rightEdge y la etiqueta
-     * se ubica automaticamente a su izquierda (con un espacio fijo), midiendo el ancho
-     * REAL de ambos textos primero. Esto evita cualquier superposicion sin importar
-     * el tamano de fuente o el largo del numero.
-     */
     private static void drawParEtiquetaValor(Graphics2D g, String etiqueta, Font fuenteEtiqueta,
                                              String valor, Font fuenteValor, int rightEdge, int baselineY) {
         g.setFont(fuenteValor);
