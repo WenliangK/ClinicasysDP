@@ -32,6 +32,15 @@ public class GestorPacientes {
         return p;
     }
 
+    public void actualizar(int id, String nombre, String dni, String tel, String email) {
+        Paciente p = new Paciente(id, nombre, dni, tel, email);
+        try {
+            pacienteDAO.actualizar(p);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al actualizar el paciente: " + e.getMessage(), e);
+        }
+    }
+
     public Paciente buscarPorDni(String dni)
             throws ExcepcionesPersonalizadas.PacienteNoEncontradoException {
         try {
