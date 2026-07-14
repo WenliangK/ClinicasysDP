@@ -1,7 +1,7 @@
 package Controlador;
 
-import DAO.FacturaDAO;
-import DAO.FacturaDAOImpl;
+import DAO.FacturaDAO; // <-- Ruta de la interfaz corregida
+import DAOImpl.FacturaDAOImpl;
 import Decorator.AnalisisSangreDecorator;
 import Decorator.CitaBase;
 import Decorator.Facturable;
@@ -9,56 +9,88 @@ import Decorator.RadiografiaDecorator;
 import Modelo.Factura;
 import Modelo.Paciente;
 
-import java.sql.SQLException;
+import java.util.concurrent.CompletableFuture;
 
 public class GestorFacturacion {
 
+    private static GestorFacturacion instancia;
     private final FacturaDAO facturaDAO = new FacturaDAOImpl();
-    public Facturable calcularFactura(String descripcionCita,
-                                      boolean conRadiografia,
-                                      boolean conAnalisisSangre) {
-        Facturable factura = new CitaBase(descripcionCita);
 
-        if (conRadiografia) {
+    public GestorFacturacion() {}
+
+    public static GestorFacturacion getInstancia() {
+        if (instancia == null) {
+            instancia = new GestorFacturacion();
+        }
+        return instancia;
+    }
+
+    public Facturable calcularFactura(String motivo, boolean incluyeRadiografia, boolean incluyeAnalisis) {
+        // Le pasamos la variable "motivo" para que tu CitaBase ya no marque error
+        Facturable factura = new CitaBase(motivo);
+
+        if (incluyeRadiografia) {
             factura = new RadiografiaDecorator(factura);
         }
-        if (conAnalisisSangre) {
+        if (incluyeAnalisis) {
             factura = new AnalisisSangreDecorator(factura);
         }
-
         return factura;
     }
 
-    public String generarBoleta(Facturable factura, Paciente paciente) {
-        String datosPaciente = (paciente != null)
-                ? String.format("Paciente: %s\nDNI:      %s\nTelefono: %s\n\n",
-                paciente.getNombre(), paciente.getDni(), paciente.getTelefono())
-                : "Paciente: (no especificado)\n\n";
+    public String generarBoleta(Facturable facturable, Paciente paciente) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=====================================\n");
+        sb.append("        CLÍNICA SAN RAFAEL           \n");
+        sb.append("        BOLETA DE ATENCIÓN           \n");
+        sb.append("=====================================\n");
 
-        return String.format(
-                "========================================\n" +
-                        "         CLINICA SAN RAFAEL\n" +
-                        "========================================\n" +
-                        "%s" +
-                        "Detalle:\n%s\n\n" +
-                        "----------------------------------------\n" +
-                        "TOTAL:  S/ %.2f\n" +
-                        "========================================",
-                datosPaciente,
-                factura.getDescripcion().replace(" + ", "\n  + "),
-                factura.getCosto()
-        );
-    }
-    public Factura guardarFactura(Facturable factura, Integer citaId, Paciente paciente) {
-        Factura f = (paciente != null)
-                ? new Factura(citaId, paciente.getId(), paciente.getNombre(), paciente.getDni(),
-                factura.getDescripcion(), factura.getCosto())
-                : new Factura(citaId, factura.getDescripcion(), factura.getCosto());
-        try {
-            facturaDAO.insertar(f);
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al guardar la factura en la base de datos: " + e.getMessage(), e);
+        if (paciente != null) {
+            sb.append("Paciente: ").append(paciente.getNombre()).append("\n");
+            sb.append("DNI: ").append(paciente.getDni()).append("\n");
+        } else {
+            sb.append("Paciente: Público en General\n");
         }
-        return f;
+
+        sb.append("-------------------------------------\n");
+        sb.append("Detalle de los servicios:\n\n");
+        sb.append(facturable.getDescripcion()).append("\n");
+        sb.append("-------------------------------------\n");
+        sb.append(String.format("TOTAL A PAGAR:       S/ %.2f\n", facturable.getCosto()));
+        sb.append("=====================================\n");
+
+        return sb.toString();
+    }
+
+    public CompletableFuture<Factura> guardarFactura(Facturable facturable, Object extra, Paciente paciente) {
+        // 1. Extraemos los datos del paciente de forma segura si no es nulo
+        Integer pacienteId = null;
+        String pacienteNombre = null;
+        String pacienteDni = null;
+
+        if (paciente != null) {
+            pacienteId = paciente.getId();
+            pacienteNombre = paciente.getNombre();
+            pacienteDni = paciente.getDni();
+        }
+
+        // 2. Extraemos el ID de la cita (si viene en el objeto 'extra')
+        Integer citaId = null;
+        if (extra instanceof Integer) {
+            citaId = (Integer) extra;
+        }
+
+        // 3. ¡AQUÍ ESTÁ LA MAGIA! Usamos tu constructor en lugar de los métodos "set"
+        Factura nuevaFactura = new Factura(
+                citaId,
+                pacienteId,
+                pacienteNombre,
+                pacienteDni,
+                facturable.getDescripcion(),
+                facturable.getCosto()
+        );
+
+        // 4. Enviamos al servidor
+        return facturaDAO.guardar(nuevaFactura);
     }
 }

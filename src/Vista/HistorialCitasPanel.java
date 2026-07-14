@@ -17,7 +17,13 @@ public class HistorialCitasPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         inicializarComponentes();
+
+        iniciarAutoRefresh(); // ¡Nuevo! Auto-refresco
         cargarDatos();
+    }
+
+    private void iniciarAutoRefresh() {
+        new Timer(10000, e -> cargarDatos()).start();
     }
 
     private void inicializarComponentes() {
@@ -42,23 +48,20 @@ public class HistorialCitasPanel extends JPanel {
     }
 
     public void cargarDatos() {
-        try {
-            modeloTabla.setRowCount(0);
-            List<Cita> historial = GestorCitas.getInstancia().getHistorial();
-            for (Cita c : historial) {
-                modeloTabla.addRow(new Object[]{
-                        c.getId(),
-                        c.getPaciente().getNombre(),
-                        c.getMedico(),
-                        c.getFechaFormateada(),
-                        c.getEstado().name(),
-                        c.getFechaActualizacionFormateada()
+        // Petición asíncrona a Spring Boot
+        GestorCitas.getInstancia().getHistorial()
+                .thenAccept(historial -> SwingUtilities.invokeLater(() -> {
+                    modeloTabla.setRowCount(0);
+                    for (Cita c : historial) {
+                        modeloTabla.addRow(new Object[]{
+                                c.getId(), c.getPaciente().getNombre(), c.getMedico(),
+                                c.getFechaFormateada(), c.getEstado().name(), c.getFechaActualizacionFormateada()
+                        });
+                    }
+                }))
+                .exceptionally(ex -> {
+                    System.err.println("Error de red cargando historial: " + ex.getMessage());
+                    return null;
                 });
-            }
-        } catch (RuntimeException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "No se pudo cargar el historial de citas: " + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        }
     }
 }

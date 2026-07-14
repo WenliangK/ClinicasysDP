@@ -1,14 +1,10 @@
 package DAO;
-
 import Modelo.Medico;
-
-import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface MedicoDAO {
-    void insertar(Medico medico) throws SQLException;
-    void actualizar(Medico medico) throws SQLException;
-    void eliminar(int id) throws SQLException;
-    Medico buscarPorId(int id) throws SQLException;
-    List<Medico> listarTodos() throws SQLException;
+    CompletableFuture<List<Medico>> listarTodos();
+    CompletableFuture<Medico> guardar(Medico medico);
+    CompletableFuture<Void> eliminar(int id);
 }

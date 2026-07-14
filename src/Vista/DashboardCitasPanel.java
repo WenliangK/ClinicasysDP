@@ -8,12 +8,12 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+
 public class DashboardCitasPanel extends JPanel implements Observador {
 
     private JTable tablaCitas;
     private DefaultTableModel modeloTabla;
     private JLabel lblEstado;
-
     private Runnable onCitaFinalizada;
 
     public DashboardCitasPanel() {
@@ -21,7 +21,14 @@ public class DashboardCitasPanel extends JPanel implements Observador {
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         inicializarComponentes();
         GestorCitas.getInstancia().suscribir(this);
+
+        iniciarAutoRefresh(); // ¡Nuevo! Auto-refresco
         cargarDatos();
+    }
+
+    private void iniciarAutoRefresh() {
+        // Refresca la tabla cada 10 segundos en segundo plano sin congelar la app
+        new Timer(10000, e -> cargarDatos()).start();
     }
 
     public void setOnCitaFinalizada(Runnable callback) {
@@ -64,25 +71,29 @@ public class DashboardCitasPanel extends JPanel implements Observador {
     private void cambiarEstadoCitaSeleccionada(Cita.Estado estado) {
         int fila = tablaCitas.getSelectedRow();
         if (fila == -1) {
-            JOptionPane.showMessageDialog(this, "Selecciona una cita primero.",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Selecciona una cita primero.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
         int id = (int) modeloTabla.getValueAt(fila, 0);
-        try {
-            GestorCitas.getInstancia().cambiarEstado(id, estado);
-        } catch (RuntimeException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "No se pudo actualizar el estado de la cita: " + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        }
+
+        // Petición asíncrona al API para cambiar el estado
+        GestorCitas.getInstancia().cambiarEstado(id, estado)
+                .thenAccept(v -> SwingUtilities.invokeLater(() -> {
+                    // Aquí el API ya confirmó el cambio. Se refresca la tabla.
+                    cargarDatos();
+                }))
+                .exceptionally(ex -> {
+                    SwingUtilities.invokeLater(() ->
+                            JOptionPane.showMessageDialog(this, "No se pudo actualizar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE)
+                    );
+                    return null;
+                });
     }
 
     @Override
     public void actualizar(String nuevoEstado, int citaId) {
         cargarDatos();
         lblEstado.setText("Cita #" + citaId + " -> " + nuevoEstado);
-
         boolean esFinal = "ATENDIDO".equals(nuevoEstado) || "CANCELADO".equals(nuevoEstado);
         if (esFinal && onCitaFinalizada != null) {
             onCitaFinalizada.run();
@@ -90,23 +101,20 @@ public class DashboardCitasPanel extends JPanel implements Observador {
     }
 
     public void cargarDatos() {
-        try {
-            modeloTabla.setRowCount(0);
-            List<Cita> citas = GestorCitas.getInstancia().getCitasVigentes();
-            for (Cita c : citas) {
-                modeloTabla.addRow(new Object[]{
-                        c.getId(),
-                        c.getPaciente().getNombre(),
-                        c.getMedico(),
-                        c.getFechaFormateada(),
-                        c.getMotivo(),
-                        c.getEstado().name()
+        // Petición asíncrona por Tailscale
+        GestorCitas.getInstancia().getCitasVigentes()
+                .thenAccept(citas -> SwingUtilities.invokeLater(() -> {
+                    modeloTabla.setRowCount(0);
+                    for (Cita c : citas) {
+                        modeloTabla.addRow(new Object[]{
+                                c.getId(), c.getPaciente().getNombre(), c.getMedico(),
+                                c.getFechaFormateada(), c.getMotivo(), c.getEstado().name()
+                        });
+                    }
+                }))
+                .exceptionally(ex -> {
+                    System.err.println("Error cargando dashboard: " + ex.getMessage());
+                    return null;
                 });
-            }
-        } catch (RuntimeException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "No se pudo cargar la lista de citas: " + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        }
     }
 }

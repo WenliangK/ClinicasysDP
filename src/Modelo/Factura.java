@@ -38,6 +38,10 @@ public class Factura {
         this.fechaEmision = fechaEmision;
     }
 
+    public Factura() {
+
+    }
+
     public int getId()                       { return id; }
     public Integer getCitaId()               { return citaId; }
     public Integer getPacienteId()           { return pacienteId; }
