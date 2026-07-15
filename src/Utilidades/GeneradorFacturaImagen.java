@@ -36,7 +36,7 @@ public class GeneradorFacturaImagen {
         public double getTotal() { return cantidad * precioUnitario; }
     }
 
-    public static BufferedImage generar(String nombreClinica, int numeroFactura, LocalDateTime fecha,
+    public static BufferedImage generar(String nombreClinica, long numeroFactura, LocalDateTime fecha,
                                         String pacienteNombre, String pacienteDni, String pacienteTelefono,
                                         String motivo, List<ItemFactura> items) {
 

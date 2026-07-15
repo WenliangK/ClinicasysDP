@@ -4,95 +4,80 @@ import DAO.CitaDAO;
 import Modelo.Cita;
 import Singleton.ConexionAPI;
 import Utilidades.GsonFactory;
+import Utilidades.RespuestaHttp;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-package DAOImpl; // Ajusta este paquete según tu estructura real
-
-import DAO.CitaDAO;
-import Modelo.Cita;
-import Singleton.ConexionAPI; // Tu clase Singleton
-import com.google.gson.Gson;
-import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class CitaDAOImpl implements CitaDAO {
-
     private static final String ENDPOINT = "/citas";
+    private static final Type LISTA_CITAS = new TypeToken<List<Cita>>() { }.getType();
 
     private final Gson gson = GsonFactory.getInstancia();
     private final ConexionAPI conexion = ConexionAPI.getInstancia();
 
     @Override
     public CompletableFuture<List<Cita>> listarTodos() {
-        HttpRequest request = conexion.requestBuilder(ENDPOINT)
-                .GET()
-                .build();
-
-        return conexion.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(resp -> {
-                    if (resp.statusCode() == 200) {
-                        Type tipoLista = new TypeToken<List<Cita>>() {}.getType();
-                        return (List<Cita>) gson.fromJson(resp.body(), tipoLista);
+        HttpRequest request = conexion.requestBuilder(ENDPOINT).GET().build();
+        return conexion.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+                .thenApply(respuesta -> {
+                    if (!RespuestaHttp.esExitosa(respuesta)) {
+                        throw RespuestaHttp.error("No se pudieron listar las citas", respuesta);
                     }
-                    throw new RuntimeException("Error al listar citas: " + resp.statusCode());
+                    return gson.fromJson(respuesta.body(), LISTA_CITAS);
                 });
-import java.time.Duration;
-
-public class CitaDAOImpl implements CitaDAO {
-    private final Gson gson = new Gson();
-    // Obtener la instancia del Singleton correctamente
-    private final ConexionAPI conexion = ConexionAPI.getInstancia();
-    private final String baseUrl = "http://100.115.247.43:8080/api";
-
-    @Override
-    public CompletableFuture<List<Cita>> listarTodos() {
-        return null;
     }
 
     @Override
     public CompletableFuture<Cita> guardar(Cita cita) {
-        String json = gson.toJson(cita);
+        boolean esNueva = cita.getId() == null;
+        String endpoint = esNueva ? ENDPOINT : ENDPOINT + "/" + cita.getId();
+        HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(
+                gson.toJson(cita), StandardCharsets.UTF_8);
+        HttpRequest request = esNueva
+                ? conexion.requestBuilder(endpoint).POST(body).build()
+                : conexion.requestBuilder(endpoint).PUT(body).build();
 
-        HttpRequest request = conexion.requestBuilder(ENDPOINT)
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/citas"))
-                .header("Content-Type", "application/json")
-                .timeout(Duration.ofSeconds(15))
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-
-        return conexion.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(resp -> {
-                    if (resp.statusCode() == 200 || resp.statusCode() == 201) {
-                        return gson.fromJson(resp.body(), Cita.class);
+        return conexion.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+                .thenApply(respuesta -> {
+                    if (!RespuestaHttp.esExitosa(respuesta)) {
+                        throw RespuestaHttp.error("No se pudo guardar la cita", respuesta);
                     }
-                    throw new RuntimeException("Error al guardar cita: " + resp.statusCode());
-                    } else {
-                        throw new RuntimeException("Error: " + resp.statusCode());
-                    }
+                    return gson.fromJson(respuesta.body(), Cita.class);
                 });
     }
 
     @Override
-    public CompletableFuture<Void> eliminar(int id) {
-        HttpRequest request = conexion.requestBuilder(ENDPOINT + "/" + id)
-                .DELETE()
+    public CompletableFuture<Cita> cambiarEstado(long id, Cita.Estado estado) {
+        String json = gson.toJson(Map.of("estado", estado.name()));
+        HttpRequest request = conexion.requestBuilder(ENDPOINT + "/" + id + "/estado")
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
                 .build();
-
-        return conexion.getClient().sendAsync(request, HttpResponse.BodyHandlers.discarding())
-                .thenApply(resp -> {
-                    if (resp.statusCode() == 200 || resp.statusCode() == 204) {
-                        return null;
+        return conexion.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+                .thenApply(respuesta -> {
+                    if (!RespuestaHttp.esExitosa(respuesta)) {
+                        throw RespuestaHttp.error("No se pudo cambiar el estado de la cita", respuesta);
                     }
-                    throw new RuntimeException("Error al eliminar cita: " + resp.statusCode());
+                    return gson.fromJson(respuesta.body(), Cita.class);
                 });
     }
-}
-        return null;
+
+    @Override
+    public CompletableFuture<Void> eliminar(long id) {
+        HttpRequest request = conexion.requestBuilder(ENDPOINT + "/" + id).DELETE().build();
+        return conexion.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+                .thenApply(respuesta -> {
+                    if (!RespuestaHttp.esExitosa(respuesta)) {
+                        throw RespuestaHttp.error("No se pudo eliminar la cita", respuesta);
+                    }
+                    return null;
+                });
     }
 }
