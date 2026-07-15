@@ -1,72 +1,27 @@
 package Controlador;
 
 import DAO.PacienteDAO;
-import DAO.PacienteDAOImpl;
+import DAOImpl.PacienteDAOImpl;
 import Modelo.Paciente;
-import Utilidades.ExcepcionesPersonalizadas;
-
-import java.sql.SQLException;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 public class GestorPacientes {
-
     private static GestorPacientes instancia;
-    private final PacienteDAO pacienteDAO;
+    private final PacienteDAO pacienteDAO = new PacienteDAOImpl();
 
-    private GestorPacientes() {
-        this.pacienteDAO = new PacienteDAOImpl();
-    }
+    private GestorPacientes() {}
 
     public static GestorPacientes getInstancia() {
         if (instancia == null) instancia = new GestorPacientes();
         return instancia;
     }
 
-    public Paciente registrar(String nombre, String dni, String tel, String email) {
-        Paciente p = new Paciente(nombre, dni, tel, email);
-        try {
-            pacienteDAO.insertar(p);
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al registrar el paciente en la base de datos: " + e.getMessage(), e);
-        }
-        return p;
+    public CompletableFuture<List<Paciente>> getTodos() {
+        return pacienteDAO.listarTodos();
     }
 
-    public void actualizar(int id, String nombre, String dni, String tel, String email) {
-        Paciente p = new Paciente(id, nombre, dni, tel, email);
-        try {
-            pacienteDAO.actualizar(p);
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al actualizar el paciente: " + e.getMessage(), e);
-        }
-    }
-
-    public Paciente buscarPorDni(String dni)
-            throws ExcepcionesPersonalizadas.PacienteNoEncontradoException {
-        try {
-            Paciente p = pacienteDAO.buscarPorDni(dni);
-            if (p == null) {
-                throw new ExcepcionesPersonalizadas.PacienteNoEncontradoException(-1);
-            }
-            return p;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al buscar el paciente: " + e.getMessage(), e);
-        }
-    }
-
-    public void eliminar(int id) {
-        try {
-            pacienteDAO.eliminar(id);
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al eliminar el paciente: " + e.getMessage(), e);
-        }
-    }
-
-    public List<Paciente> getTodos() {
-        try {
-            return pacienteDAO.listarTodos();
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al listar pacientes desde la base de datos: " + e.getMessage(), e);
-        }
+    public CompletableFuture<List<Paciente>> listarPacientes() {
+        return pacienteDAO.listarTodos();
     }
 }

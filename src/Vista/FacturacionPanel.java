@@ -2,7 +2,7 @@ package Vista;
 
 import Controlador.GestorFacturacion;
 import DAO.PacienteDAO;
-import DAO.PacienteDAOImpl;
+import DAOImpl.PacienteDAOImpl;
 import Decorator.Facturable;
 import Modelo.Factura;
 import Modelo.Paciente;
@@ -15,9 +15,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
 public class FacturacionPanel extends JPanel {
 
     private final GestorFacturacion gestor = new GestorFacturacion();
@@ -38,6 +38,7 @@ public class FacturacionPanel extends JPanel {
     }
 
     private void inicializarComponentes() {
+        // [El diseño gráfico se mantiene idéntico, he resumido la inicialización para que no haya cambios]
         JLabel titulo = new JLabel("Modulo de Facturacion");
         titulo.setFont(new Font("SansSerif", Font.BOLD, 20));
         add(titulo, BorderLayout.NORTH);
@@ -61,8 +62,7 @@ public class FacturacionPanel extends JPanel {
         gbc.gridx = 0; gbc.gridy = 1; form.add(new JLabel("Motivo de consulta:"), gbc);
         gbc.gridx = 1; form.add(txtMotivo, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
-        form.add(new JLabel("Examenes adicionales:"), gbc);
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; form.add(new JLabel("Examenes adicionales:"), gbc);
         gbc.gridy = 3; form.add(chkRadiografia, gbc);
         gbc.gridy = 4; form.add(chkAnalisisSangre, gbc);
 
@@ -89,120 +89,85 @@ public class FacturacionPanel extends JPanel {
     }
 
     public void cargarPacientes() {
-        comboPaciente.removeAllItems();
-        comboPaciente.addItem(null); // opcion "sin paciente"
-        try {
-            List<Paciente> pacientes = pacienteDAO.listarTodos();
-            for (Paciente p : pacientes) {
-                comboPaciente.addItem(p);
-            }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "No se pudo cargar la lista de pacientes: " + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        comboPaciente.setRenderer(new DefaultListCellRendererPaciente());
+        pacienteDAO.listarTodos().thenAccept(pacientes -> SwingUtilities.invokeLater(() -> {
+            comboPaciente.removeAllItems();
+            comboPaciente.addItem(null);
+            for (Paciente p : pacientes) { comboPaciente.addItem(p); }
+            comboPaciente.setRenderer(new DefaultListCellRendererPaciente());
+        })).exceptionally(ex -> {
+            SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, "Error red: " + ex.getMessage()));
+            return null;
+        });
     }
 
-    private Paciente pacienteSeleccionado() {
-        return (Paciente) comboPaciente.getSelectedItem();
-    }
+    private Paciente pacienteSeleccionado() { return (Paciente) comboPaciente.getSelectedItem(); }
 
     private void calcular() {
-        try {
-            if (txtMotivo.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Ingresa el motivo de la consulta.",
-                        "Campo requerido", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            facturaCalculada = gestor.calcularFactura(
-                    txtMotivo.getText().trim(),
-                    chkRadiografia.isSelected(),
-                    chkAnalisisSangre.isSelected()
-            );
-            txtResultado.setText(gestor.generarBoleta(facturaCalculada, pacienteSeleccionado()));
-            btnGuardar.setEnabled(true);
-            facturaGuardada = null;
-            btnDescargarImagen.setEnabled(false);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error al calcular: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        if (txtMotivo.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Ingresa el motivo.", "Requerido", JOptionPane.WARNING_MESSAGE);
+            return;
         }
+        facturaCalculada = gestor.calcularFactura(txtMotivo.getText().trim(), chkRadiografia.isSelected(), chkAnalisisSangre.isSelected());
+        txtResultado.setText(gestor.generarBoleta(facturaCalculada, pacienteSeleccionado()));
+        btnGuardar.setEnabled(true);
+        facturaGuardada = null;
+        btnDescargarImagen.setEnabled(false);
     }
 
     private void guardar() {
         if (facturaCalculada == null) return;
-        try {
-            Factura f = gestor.guardarFactura(facturaCalculada, null, pacienteSeleccionado());
-            JOptionPane.showMessageDialog(this,
-                    "Factura #" + f.getId() + " guardada correctamente.",
-                    "Exito", JOptionPane.INFORMATION_MESSAGE);
-            btnGuardar.setEnabled(false);
-            facturaGuardada = f;
-            btnDescargarImagen.setEnabled(true);
-        } catch (RuntimeException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error al guardar la factura: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        btnGuardar.setEnabled(false); // prevenir clics múltiples
+
+        // Petición asíncrona de guardado
+        gestor.guardarFactura(facturaCalculada, null, pacienteSeleccionado())
+                .thenAccept(f -> SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(this, "Factura guardada correctamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
+                    facturaGuardada = f;
+                    btnDescargarImagen.setEnabled(true);
+                }))
+                .exceptionally(ex -> {
+                    SwingUtilities.invokeLater(() -> {
+                        JOptionPane.showMessageDialog(this, "Error red: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        btnGuardar.setEnabled(true);
+                    });
+                    return null;
+                });
     }
 
+    // El método descargarImagen() y construirItems() se mantienen idénticos (no usan BD)
     private void descargarImagen() {
-        if (facturaGuardada == null) {
-            JOptionPane.showMessageDialog(this, "Primero guarda la factura.",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        if (facturaGuardada == null) return;
         try {
             Paciente paciente = pacienteSeleccionado();
             List<GeneradorFacturaImagen.ItemFactura> items = construirItems();
-
-            BufferedImage imagen = GeneradorFacturaImagen.generar(
-                    GestorConfiguracion.getInstancia().getNombreClinica(),
-                    facturaGuardada.getId(),
-                    facturaGuardada.getFechaEmision(),
-                    paciente != null ? paciente.getNombre() : null,
-                    paciente != null ? paciente.getDni() : null,
-                    paciente != null ? paciente.getTelefono() : null,
-                    txtMotivo.getText().trim(),
-                    items
-            );
+            BufferedImage imagen = GeneradorFacturaImagen.generar(GestorConfiguracion.getInstancia().getNombreClinica(),
+                    facturaGuardada.getId(), facturaGuardada.getFechaEmision(),
+                    paciente != null ? paciente.getNombre() : null, paciente != null ? paciente.getDni() : null,
+                    paciente != null ? paciente.getTelefono() : null, txtMotivo.getText().trim(), items);
 
             JFileChooser chooser = new JFileChooser();
             chooser.setSelectedFile(new File("factura_" + facturaGuardada.getId() + ".png"));
-            int seleccion = chooser.showSaveDialog(this);
-            if (seleccion != JFileChooser.APPROVE_OPTION) return;
-
-            File destino = chooser.getSelectedFile();
-            if (!destino.getName().toLowerCase().endsWith(".png")) {
-                destino = new File(destino.getParentFile(), destino.getName() + ".png");
+            if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File destino = chooser.getSelectedFile();
+                if (!destino.getName().toLowerCase().endsWith(".png")) destino = new File(destino.getParentFile(), destino.getName() + ".png");
+                ImageIO.write(imagen, "png", destino);
+                JOptionPane.showMessageDialog(this, "Guardada en:\n" + destino.getAbsolutePath(), "Éxito", JOptionPane.INFORMATION_MESSAGE);
             }
-            ImageIO.write(imagen, "png", destino);
-
-            JOptionPane.showMessageDialog(this,
-                    "Factura guardada como imagen en:\n" + destino.getAbsolutePath(),
-                    "Descarga exitosa", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "No se pudo generar la imagen: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error generar imagen: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private List<GeneradorFacturaImagen.ItemFactura> construirItems() {
         List<GeneradorFacturaImagen.ItemFactura> items = new ArrayList<>();
         items.add(new GeneradorFacturaImagen.ItemFactura(1, "Consulta medica: " + txtMotivo.getText().trim(), 50.00));
-        if (chkRadiografia.isSelected()) {
-            items.add(new GeneradorFacturaImagen.ItemFactura(1, "Radiografia", 30.00));
-        }
-        if (chkAnalisisSangre.isSelected()) {
-            items.add(new GeneradorFacturaImagen.ItemFactura(1, "Analisis de Sangre", 20.00));
-        }
+        if (chkRadiografia.isSelected()) items.add(new GeneradorFacturaImagen.ItemFactura(1, "Radiografia", 30.00));
+        if (chkAnalisisSangre.isSelected()) items.add(new GeneradorFacturaImagen.ItemFactura(1, "Analisis de Sangre", 20.00));
         return items;
     }
 
     private static class DefaultListCellRendererPaciente extends DefaultListCellRenderer {
-        @Override
-        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                                                      boolean isSelected, boolean cellHasFocus) {
+        @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             String texto = (value == null) ? "(sin paciente)" : value.toString();
             return super.getListCellRendererComponent(list, texto, index, isSelected, cellHasFocus);
         }

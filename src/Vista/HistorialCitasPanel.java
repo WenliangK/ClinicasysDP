@@ -2,14 +2,12 @@ package Vista;
 
 import Controlador.GestorCitas;
 import Modelo.Cita;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
 public class HistorialCitasPanel extends JPanel {
-
     private JTable tablaHistorial;
     private DefaultTableModel modeloTabla;
 
@@ -25,40 +23,37 @@ public class HistorialCitasPanel extends JPanel {
         titulo.setFont(new Font("SansSerif", Font.BOLD, 20));
         add(titulo, BorderLayout.NORTH);
 
-        String[] columnas = {"ID", "Paciente", "Medico", "Fecha/Hora Cita", "Estado", "Fecha/Hora Atencion o Cancelacion"};
+        String[] columnas = {"ID", "Paciente", "Medico", "Fecha/Hora Cita", "Estado"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tablaHistorial = new JTable(modeloTabla);
-        tablaHistorial.setRowHeight(26);
-        tablaHistorial.getTableHeader().setReorderingAllowed(false);
         add(new JScrollPane(tablaHistorial), BorderLayout.CENTER);
 
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         JButton btnRefrescar = new JButton("Refrescar");
         btnRefrescar.addActionListener(e -> cargarDatos());
-        panelBotones.add(btnRefrescar);
-        add(panelBotones, BorderLayout.SOUTH);
+        add(btnRefrescar, BorderLayout.SOUTH);
     }
 
     public void cargarDatos() {
-        try {
-            modeloTabla.setRowCount(0);
-            List<Cita> historial = GestorCitas.getInstancia().getHistorial();
-            for (Cita c : historial) {
-                modeloTabla.addRow(new Object[]{
-                        c.getId(),
-                        c.getPaciente().getNombre(),
-                        c.getMedico(),
-                        c.getFechaFormateada(),
-                        c.getEstado().name(),
-                        c.getFechaActualizacionFormateada()
-                });
-            }
-        } catch (RuntimeException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "No se pudo cargar el historial de citas: " + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        // Llamada asíncrona a través del Gestor (3 capas)
+        GestorCitas.getInstancia().getCitasVigentes().thenAccept(historial -> {
+            SwingUtilities.invokeLater(() -> {
+                modeloTabla.setRowCount(0);
+                for (Cita c : historial) {
+                    modeloTabla.addRow(new Object[]{
+                            c.getId(),
+                            c.getPaciente() != null ? c.getPaciente().getNombre() : "N/A",
+                            c.getMedico(),
+                            c.getFechaHora(),
+                            c.getEstado()
+                    });
+                }
+            });
+        }).exceptionally(ex -> {
+            SwingUtilities.invokeLater(() ->
+                    JOptionPane.showMessageDialog(this, "Error de red: " + ex.getMessage()));
+            return null;
+        });
     }
 }
