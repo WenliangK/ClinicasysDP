@@ -1,5 +1,4 @@
 package DAO;
-
 import Modelo.Medico;
 
 import java.util.List;
