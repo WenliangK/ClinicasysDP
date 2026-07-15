@@ -3,12 +3,39 @@ package DAOImpl;
 import DAO.MedicoDAO;
 import Modelo.Medico;
 import Singleton.ConexionAPI;
+import Utilidades.GsonFactory;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
 import com.google.gson.Gson;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+
+public class MedicoDAOImpl implements MedicoDAO {
+
+    private static final String ENDPOINT = "/medicos";
+
+    private final Gson gson = GsonFactory.getInstancia();
+    private final ConexionAPI conexion = ConexionAPI.getInstancia();
+
+    @Override
+    public CompletableFuture<List<Medico>> listarTodos() {
+        HttpRequest request = conexion.requestBuilder(ENDPOINT)
+                .GET()
+                .build();
+
+        return conexion.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(resp -> {
+                    if (resp.statusCode() == 200) {
+                        Type tipoLista = new TypeToken<List<Medico>>() {}.getType();
+                        return (List<Medico>) gson.fromJson(resp.body(), tipoLista);
+                    }
+                    throw new RuntimeException("Error al listar médicos: " + resp.statusCode());
+                });
 import java.time.Duration;
 
 public class MedicoDAOImpl implements MedicoDAO {
@@ -24,6 +51,7 @@ public class MedicoDAOImpl implements MedicoDAO {
     @Override
     public CompletableFuture<Medico> guardar(Medico medico) {
         String json = gson.toJson(medico);
+        HttpRequest request = conexion.requestBuilder(ENDPOINT)
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/medicos"))
                 .header("Content-Type", "application/json")
@@ -42,6 +70,19 @@ public class MedicoDAOImpl implements MedicoDAO {
 
     @Override
     public CompletableFuture<Void> eliminar(int id) {
+        HttpRequest request = conexion.requestBuilder(ENDPOINT + "/" + id)
+                .DELETE()
+                .build();
+
+        return conexion.getClient().sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                .thenApply(resp -> {
+                    if (resp.statusCode() == 200 || resp.statusCode() == 204) {
+                        return null;
+                    }
+                    throw new RuntimeException("Error al eliminar médico: " + resp.statusCode());
+                });
+    }
+}
         return null;
     }
 }

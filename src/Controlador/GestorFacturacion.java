@@ -1,5 +1,6 @@
 package Controlador;
 
+import DAO.FacturaDAO;
 import DAO.FacturaDAO; // <-- Ruta de la interfaz corregida
 import DAOImpl.FacturaDAOImpl;
 import Decorator.AnalisisSangreDecorator;
@@ -69,6 +70,10 @@ public class GestorFacturacion {
         String pacienteDni = null;
 
         if (paciente != null) {
+            // CORREGIDO: paciente.getId() devuelve Long en tu Modelo.Paciente
+            // actual, y no se puede asignar directamente a un Integer.
+            // .intValue() hace la conversión explícita que pedía el compilador.
+            pacienteId = paciente.getId() != null ? paciente.getId().intValue() : null;
             pacienteId = paciente.getId();
             pacienteNombre = paciente.getNombre();
             pacienteDni = paciente.getDni();

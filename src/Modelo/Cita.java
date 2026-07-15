@@ -23,6 +23,18 @@ public class Cita {
     public int getSalaId() {
         return this.salaId;
     }
+
+    // AÑADIDO: antes no existían estos setters, así que medicoId/salaId
+    // siempre quedaban en 0 sin importar lo que pasaras al construir la
+    // Cita. Son aditivos: no cambian ningún constructor existente.
+    public void setMedicoId(int medicoId) {
+        this.medicoId = medicoId;
+    }
+
+    public void setSalaId(int salaId) {
+        this.salaId = salaId;
+    }
+
     public Cita(Paciente paciente, String medico, LocalDateTime fechaHora, String motivo) {
         this(0, paciente, medico, fechaHora, motivo, Estado.EN_ESPERA);
     }
