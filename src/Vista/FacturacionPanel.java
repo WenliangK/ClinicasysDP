@@ -1,13 +1,13 @@
 package Vista;
 
 import Controlador.GestorFacturacion;
-import DAO.PacienteDAO;
-import DAOImpl.PacienteDAOImpl;
+import Controlador.GestorPacientes;
 import Decorator.Facturable;
 import Modelo.Factura;
 import Modelo.Paciente;
 import Singleton.GestorConfiguracion;
 import Utilidades.GeneradorFacturaImagen;
+import Utilidades.RespuestaHttp;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -20,8 +20,7 @@ import java.util.List;
 
 public class FacturacionPanel extends JPanel {
 
-    private final GestorFacturacion gestor = new GestorFacturacion();
-    private final PacienteDAO pacienteDAO = new PacienteDAOImpl();
+    private final GestorFacturacion gestor = GestorFacturacion.getInstancia();
 
     private JComboBox<Paciente> comboPaciente;
     private JTextField txtMotivo;
@@ -89,13 +88,13 @@ public class FacturacionPanel extends JPanel {
     }
 
     public void cargarPacientes() {
-        pacienteDAO.listarTodos().thenAccept(pacientes -> SwingUtilities.invokeLater(() -> {
+        GestorPacientes.getInstancia().getTodos().thenAccept(pacientes -> SwingUtilities.invokeLater(() -> {
             comboPaciente.removeAllItems();
             comboPaciente.addItem(null);
             for (Paciente p : pacientes) { comboPaciente.addItem(p); }
             comboPaciente.setRenderer(new DefaultListCellRendererPaciente());
         })).exceptionally(ex -> {
-            SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, "Error red: " + ex.getMessage()));
+            SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, "Error de red: " + RespuestaHttp.mensaje(ex)));
             return null;
         });
     }
@@ -116,9 +115,8 @@ public class FacturacionPanel extends JPanel {
 
     private void guardar() {
         if (facturaCalculada == null) return;
-        btnGuardar.setEnabled(false); // prevenir clics múltiples
+        btnGuardar.setEnabled(false);
 
-        // Petición asíncrona de guardado
         gestor.guardarFactura(facturaCalculada, null, pacienteSeleccionado())
                 .thenAccept(f -> SwingUtilities.invokeLater(() -> {
                     JOptionPane.showMessageDialog(this, "Factura guardada correctamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
@@ -127,14 +125,13 @@ public class FacturacionPanel extends JPanel {
                 }))
                 .exceptionally(ex -> {
                     SwingUtilities.invokeLater(() -> {
-                        JOptionPane.showMessageDialog(this, "Error red: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(this, "Error de red: " + RespuestaHttp.mensaje(ex), "Error", JOptionPane.ERROR_MESSAGE);
                         btnGuardar.setEnabled(true);
                     });
                     return null;
                 });
     }
 
-    // El método descargarImagen() y construirItems() se mantienen idénticos (no usan BD)
     private void descargarImagen() {
         if (facturaGuardada == null) return;
         try {

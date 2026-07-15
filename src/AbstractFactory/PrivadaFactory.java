@@ -5,7 +5,7 @@ import Modelo.Sala;
 
 public class PrivadaFactory implements ClinicaFactory {
     @Override
-    public Medico crearMedico(int id, String nombre, String especialidad) {
+    public Medico crearMedico(Long id, String nombre, String especialidad) {
         return new Medico(id, nombre, especialidad, "PRIVADO");
     }
 

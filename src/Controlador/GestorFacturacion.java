@@ -11,23 +11,34 @@ import Modelo.Paciente;
 
 import java.util.concurrent.CompletableFuture;
 
-public class GestorFacturacion {
+public final class GestorFacturacion {
+    private static volatile GestorFacturacion instancia;
+    private final FacturaDAO facturaDAO;
 
-    private static GestorFacturacion instancia;
-    private final FacturaDAO facturaDAO = new FacturaDAOImpl();
+    public GestorFacturacion() {
+        this(new FacturaDAOImpl());
+    }
 
-    public GestorFacturacion() {}
+    GestorFacturacion(FacturaDAO facturaDAO) {
+        this.facturaDAO = facturaDAO;
+    }
 
     public static GestorFacturacion getInstancia() {
-        if (instancia == null) {
-            instancia = new GestorFacturacion();
+        GestorFacturacion actual = instancia;
+        if (actual == null) {
+            synchronized (GestorFacturacion.class) {
+                actual = instancia;
+                if (actual == null) {
+                    actual = new GestorFacturacion();
+                    instancia = actual;
+                }
+            }
         }
-        return instancia;
+        return actual;
     }
 
     public Facturable calcularFactura(String motivo, boolean incluyeRadiografia, boolean incluyeAnalisis) {
         Facturable factura = new CitaBase(motivo);
-
         if (incluyeRadiografia) {
             factura = new RadiografiaDecorator(factura);
         }
@@ -43,44 +54,29 @@ public class GestorFacturacion {
         sb.append("        CLÍNICA SAN RAFAEL           \n");
         sb.append("        BOLETA DE ATENCIÓN           \n");
         sb.append("=====================================\n");
-
         if (paciente != null) {
             sb.append("Paciente: ").append(paciente.getNombre()).append("\n");
             sb.append("DNI: ").append(paciente.getDni()).append("\n");
         } else {
             sb.append("Paciente: Público en General\n");
         }
-
         sb.append("-------------------------------------\n");
         sb.append("Detalle de los servicios:\n\n");
         sb.append(facturable.getDescripcion()).append("\n");
         sb.append("-------------------------------------\n");
         sb.append(String.format("TOTAL A PAGAR:       S/ %.2f\n", facturable.getCosto()));
         sb.append("=====================================\n");
-
         return sb.toString();
     }
 
-    public CompletableFuture<Factura> guardarFactura(Facturable facturable, Object extra, Paciente paciente) {
-        Integer pacienteId = null;
-        String pacienteNombre = null;
-        String pacienteDni = null;
+    public CompletableFuture<Factura> guardarFactura(Facturable facturable, Object citaIdEntrada,
+                                                      Paciente paciente) {
+        Long pacienteId = paciente == null ? null : paciente.getId();
+        String pacienteNombre = paciente == null ? null : paciente.getNombre();
+        String pacienteDni = paciente == null ? null : paciente.getDni();
+        Long citaId = citaIdEntrada instanceof Number numero ? numero.longValue() : null;
 
-        if (paciente != null) {
-            // CORREGIDO: paciente.getId() devuelve Long en tu Modelo.Paciente
-            // actual, y no se puede asignar directamente a un Integer.
-            // .intValue() hace la conversión explícita que pedía el compilador.
-            pacienteId = paciente.getId() != null ? paciente.getId().intValue() : null;
-            pacienteNombre = paciente.getNombre();
-            pacienteDni = paciente.getDni();
-        }
-
-        Integer citaId = null;
-        if (extra instanceof Integer) {
-            citaId = (Integer) extra;
-        }
-
-        Factura nuevaFactura = new Factura(
+        Factura factura = new Factura(
                 citaId,
                 pacienteId,
                 pacienteNombre,
@@ -88,7 +84,6 @@ public class GestorFacturacion {
                 facturable.getDescripcion(),
                 facturable.getCosto()
         );
-
-        return facturaDAO.guardar(nuevaFactura);
+        return facturaDAO.guardar(factura);
     }
 }

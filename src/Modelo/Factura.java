@@ -1,21 +1,21 @@
 package Modelo;
 
 import java.time.LocalDateTime;
+
 public class Factura {
-    private int id;
-    private Integer citaId;
-    private Integer pacienteId;
+    private Long id;
+    private Long citaId;
+    private Long pacienteId;
     private String pacienteNombre;
     private String pacienteDni;
     private String descripcion;
     private double costo;
     private LocalDateTime fechaEmision;
 
-    public Factura(Integer citaId, String descripcion, double costo) {
-        this(citaId, null, null, null, descripcion, costo);
+    public Factura() {
     }
 
-    public Factura(Integer citaId, Integer pacienteId, String pacienteNombre, String pacienteDni,
+    public Factura(Long citaId, Long pacienteId, String pacienteNombre, String pacienteDni,
                    String descripcion, double costo) {
         this.citaId = citaId;
         this.pacienteId = pacienteId;
@@ -23,35 +23,43 @@ public class Factura {
         this.pacienteDni = pacienteDni;
         this.descripcion = descripcion;
         this.costo = costo;
-        this.fechaEmision = LocalDateTime.now();
     }
 
-    public Factura(int id, Integer citaId, Integer pacienteId, String pacienteNombre, String pacienteDni,
-                   String descripcion, double costo, LocalDateTime fechaEmision) {
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
         this.id = id;
-        this.citaId = citaId;
-        this.pacienteId = pacienteId;
-        this.pacienteNombre = pacienteNombre;
-        this.pacienteDni = pacienteDni;
-        this.descripcion = descripcion;
-        this.costo = costo;
-        this.fechaEmision = fechaEmision;
     }
 
-    public Factura() {
-
+    public Long getCitaId() {
+        return citaId;
     }
 
-    public int getId()                       { return id; }
-    public Integer getCitaId()               { return citaId; }
-    public Integer getPacienteId()           { return pacienteId; }
-    public String getPacienteNombre()        { return pacienteNombre; }
-    public String getPacienteDni()           { return pacienteDni; }
-    public String getDescripcion()           { return descripcion; }
-    public double getCosto()                 { return costo; }
-    public LocalDateTime getFechaEmision()   { return fechaEmision; }
+    public Long getPacienteId() {
+        return pacienteId;
+    }
 
-    public void setId(int id) { this.id = id; }
+    public String getPacienteNombre() {
+        return pacienteNombre;
+    }
+
+    public String getPacienteDni() {
+        return pacienteDni;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public double getCosto() {
+        return costo;
+    }
+
+    public LocalDateTime getFechaEmision() {
+        return fechaEmision;
+    }
 
     @Override
     public String toString() {

@@ -37,7 +37,7 @@ public class HistorialCitasPanel extends JPanel {
 
     public void cargarDatos() {
         // Llamada asíncrona a través del Gestor (3 capas)
-        GestorCitas.getInstancia().getCitasVigentes().thenAccept(historial -> {
+        GestorCitas.getInstancia().getTodas().thenAccept(historial -> {
             SwingUtilities.invokeLater(() -> {
                 modeloTabla.setRowCount(0);
                 for (Cita c : historial) {

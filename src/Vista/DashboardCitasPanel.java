@@ -3,6 +3,7 @@ package Vista;
 import Controlador.GestorCitas;
 import Modelo.Cita;
 import Observer.Observador;
+import Utilidades.RespuestaHttp;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -22,12 +23,11 @@ public class DashboardCitasPanel extends JPanel implements Observador {
         inicializarComponentes();
         GestorCitas.getInstancia().suscribir(this);
 
-        iniciarAutoRefresh(); // ¡Nuevo! Auto-refresco
+        iniciarAutoRefresh();
         cargarDatos();
     }
 
     private void iniciarAutoRefresh() {
-        // Refresca la tabla cada 10 segundos en segundo plano sin congelar la app
         new Timer(10000, e -> cargarDatos()).start();
     }
 
@@ -74,24 +74,23 @@ public class DashboardCitasPanel extends JPanel implements Observador {
             JOptionPane.showMessageDialog(this, "Selecciona una cita primero.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        int id = (int) modeloTabla.getValueAt(fila, 0);
+        int filaModelo = tablaCitas.convertRowIndexToModel(fila);
+        long id = ((Number) modeloTabla.getValueAt(filaModelo, 0)).longValue();
 
-        // Petición asíncrona al API para cambiar el estado
         GestorCitas.getInstancia().cambiarEstado(id, estado)
                 .thenAccept(v -> SwingUtilities.invokeLater(() -> {
-                    // Aquí el API ya confirmó el cambio. Se refresca la tabla.
                     cargarDatos();
                 }))
                 .exceptionally(ex -> {
                     SwingUtilities.invokeLater(() ->
-                            JOptionPane.showMessageDialog(this, "No se pudo actualizar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE)
+                            JOptionPane.showMessageDialog(this, "No se pudo actualizar: " + RespuestaHttp.mensaje(ex), "Error", JOptionPane.ERROR_MESSAGE)
                     );
                     return null;
                 });
     }
 
     @Override
-    public void actualizar(String nuevoEstado, int citaId) {
+    public void actualizar(String nuevoEstado, long citaId) {
         cargarDatos();
         lblEstado.setText("Cita #" + citaId + " -> " + nuevoEstado);
         boolean esFinal = "ATENDIDO".equals(nuevoEstado) || "CANCELADO".equals(nuevoEstado);
@@ -101,14 +100,13 @@ public class DashboardCitasPanel extends JPanel implements Observador {
     }
 
     public void cargarDatos() {
-        // Petición asíncrona por Tailscale
         GestorCitas.getInstancia().getCitasVigentes()
                 .thenAccept(citas -> SwingUtilities.invokeLater(() -> {
                     modeloTabla.setRowCount(0);
                     for (Cita c : citas) {
                         modeloTabla.addRow(new Object[]{
-                                c.getId(), c.getPaciente().getNombre(), c.getMedico(),
-                                c.getFechaFormateada(), c.getMotivo(), c.getEstado().name()
+                                c.getId(), c.getPaciente() == null ? "N/A" : c.getPaciente().getNombre(), c.getMedico(),
+                                c.getFechaFormateada(), c.getMotivo(), c.getEstado() == null ? "-" : c.getEstado().name()
                         });
                     }
                 }))
