@@ -1,5 +1,4 @@
 package Vista;
-
 import AbstractFactory.ClinicaFactory;
 import AbstractFactory.PrivadaFactory;
 import AbstractFactory.PublicaFactory;
@@ -26,7 +25,8 @@ public class NuevaCitaPanel extends JPanel {
     private JComboBox<Medico> cbMedico;
     private JComboBox<String> cbTipoAtencion;
     private JTextField txtEspecialidad, txtMotivo;
-    private JSpinner spinnerFecha, spinnerHora, spinnerSala;
+    private JSpinner spinnerFecha, spinnerHora;
+    private JSpinner spinnerSala;
 
     public NuevaCitaPanel() {
         setLayout(new BorderLayout(10, 10));
@@ -60,8 +60,10 @@ public class NuevaCitaPanel extends JPanel {
         cargarMedicos();
 
         spinnerSala = new JSpinner(new SpinnerNumberModel(1, 1, 20, 1));
+
         spinnerFecha = new JSpinner(new SpinnerDateModel());
         spinnerFecha.setEditor(new JSpinner.DateEditor(spinnerFecha, "dd/MM/yyyy"));
+
         spinnerHora = new JSpinner(new SpinnerDateModel());
         spinnerHora.setEditor(new JSpinner.DateEditor(spinnerHora, "HH:mm"));
 
@@ -75,7 +77,7 @@ public class NuevaCitaPanel extends JPanel {
         agregarFila(form, gbc, 7, "Hora:", spinnerHora);
 
         JButton btnGuardar = new JButton("Guardar Cita");
-        btnGuardar.addActionListener(e -> guardarCita(btnGuardar)); // Pasamos el botón para deshabilitarlo
+        btnGuardar.addActionListener(e -> guardarCita());
         gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2;
         form.add(btnGuardar, gbc);
 
@@ -89,23 +91,17 @@ public class NuevaCitaPanel extends JPanel {
 
     public void cargarPacientes() {
         Object seleccionado = cbPaciente.getSelectedItem();
-        // Llamada asíncrona
-        GestorPacientes.getInstancia().getTodos().thenAccept(lista -> SwingUtilities.invokeLater(() -> {
-            cbPaciente.removeAllItems();
-            lista.forEach(cbPaciente::addItem);
-            if (seleccionado != null) cbPaciente.setSelectedItem(seleccionado);
-        }));
+        cbPaciente.removeAllItems();
+        GestorPacientes.getInstancia().getTodos().forEach(cbPaciente::addItem);
+        if (seleccionado != null) cbPaciente.setSelectedItem(seleccionado);
     }
 
     public void cargarMedicos() {
         Object seleccionado = cbMedico.getSelectedItem();
-        // Llamada asíncrona
-        GestorMedicos.getInstancia().getTodos().thenAccept(lista -> SwingUtilities.invokeLater(() -> {
-            cbMedico.removeAllItems();
-            lista.forEach(cbMedico::addItem);
-            if (seleccionado != null) cbMedico.setSelectedItem(seleccionado);
-            actualizarEspecialidad();
-        }));
+        cbMedico.removeAllItems();
+        GestorMedicos.getInstancia().getTodos().forEach(cbMedico::addItem);
+        if (seleccionado != null) cbMedico.setSelectedItem(seleccionado);
+        actualizarEspecialidad();
     }
 
     private void actualizarEspecialidad() {
@@ -113,19 +109,20 @@ public class NuevaCitaPanel extends JPanel {
         txtEspecialidad.setText(m != null ? m.getEspecialidad() : "");
     }
 
-    private void guardarCita(JButton btnGuardar) {
+    private void guardarCita() {
         try {
             Paciente paciente = (Paciente) cbPaciente.getSelectedItem();
             if (paciente == null) { Validador.mostrarError(this, "Selecciona un paciente."); return; }
             Medico medicoSeleccionado = (Medico) cbMedico.getSelectedItem();
-            if (medicoSeleccionado == null) { Validador.mostrarError(this, "No hay medicos registrados."); return; }
-            if (txtMotivo.getText().trim().isEmpty())  { Validador.mostrarError(this, "Ingresa el motivo."); return; }
+            if (medicoSeleccionado == null) { Validador.mostrarError(this, "No hay medicos registrados. Registra uno en la tabla 'medicos'."); return; }
+            if (txtMotivo.getText().trim().isEmpty())  { Validador.mostrarError(this, "Ingresa el motivo de la consulta."); return; }
 
             String tipo = (String) cbTipoAtencion.getSelectedItem();
             ClinicaFactory factory = tipo.startsWith("PRIVADO") ? new PrivadaFactory() : new PublicaFactory();
 
             int numeroSala = (int) spinnerSala.getValue();
-            Medico medico = factory.crearMedico(medicoSeleccionado.getId(), medicoSeleccionado.getNombre(), medicoSeleccionado.getEspecialidad());
+            Medico medico = factory.crearMedico(
+                    medicoSeleccionado.getId(), medicoSeleccionado.getNombre(), medicoSeleccionado.getEspecialidad());
             Sala sala = factory.crearSala(numeroSala, "Consultorio de " + medico.getEspecialidad());
 
             Date fechaVal = (Date) spinnerFecha.getValue();
@@ -134,26 +131,22 @@ public class NuevaCitaPanel extends JPanel {
             LocalTime lt = horaVal.toInstant().atZone(ZoneId.systemDefault()).toLocalTime();
             LocalDateTime fechaHora = LocalDateTime.of(ld, lt);
 
-            btnGuardar.setEnabled(false); // Evitar doble clic
+            GestorCitas.getInstancia().registrarCita(
+                    paciente, medico.getNombre(), fechaHora, txtMotivo.getText().trim(), sala.getNumero());
 
-            // Envío asíncrono a la API
-            GestorCitas.getInstancia().registrarCita(paciente, medico.getNombre(), fechaHora, txtMotivo.getText().trim(), sala.getNumero())
-                    .thenAccept(cita -> SwingUtilities.invokeLater(() -> {
-                        Validador.mostrarExito(this, "Cita registrada exitosamente!\nSala asignada: " + sala.getNumero());
-                        txtMotivo.setText("");
-                        btnGuardar.setEnabled(true);
-                    }))
-                    .exceptionally(ex -> {
-                        SwingUtilities.invokeLater(() -> {
-                            Validador.mostrarError(this, "Error de servidor: " + ex.getMessage());
-                            btnGuardar.setEnabled(true);
-                        });
-                        return null;
-                    });
+            Validador.mostrarExito(this,
+                    "Cita registrada exitosamente!\n" +
+                            "Tipo de atencion: " + medico.getTipo() + "\n" +
+                            "Medico asignado: " + medico + "\n" +
+                            "Sala asignada: " + sala);
+            txtMotivo.setText("");
 
+        } catch (ExcepcionesPersonalizadas.FechaInvalidaException
+                 | ExcepcionesPersonalizadas.CitaDuplicadaException
+                 | ExcepcionesPersonalizadas.SalaOcupadaException ex) {
+            Validador.mostrarError(this, ex.getMessage());
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error local: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            btnGuardar.setEnabled(true);
+            JOptionPane.showMessageDialog(this, "Error inesperado: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

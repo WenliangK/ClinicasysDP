@@ -30,4 +30,6 @@ public abstract class Sujeto {
     }
 
     public abstract CompletionStage<Object> cambiarEstado(int id, Cita.Estado estado);
+
+    public abstract CompletionStage<Object> guardar(Cita nuevaCita);
 }

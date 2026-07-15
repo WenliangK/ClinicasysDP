@@ -3,7 +3,10 @@ package Controlador;
 import DAO.CitaDAO;
 import DAOImpl.CitaDAOImpl;
 import Modelo.Cita;
+import Modelo.Paciente;
 import Observer.Sujeto;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -33,5 +36,13 @@ public class GestorCitas extends Sujeto {
     @Override
     public CompletionStage<Object> cambiarEstado(int id, Cita.Estado estado) {
         return null;
+    }
+
+    @Override
+    public CompletionStage<Object> guardar(Cita nuevaCita) {
+        return null;
+    }
+
+    public void registrarCita(Paciente paciente, String nombre, LocalDateTime fechaHora, String trim, int numero) {
     }
 }
