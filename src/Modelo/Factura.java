@@ -33,9 +33,18 @@ public class Factura {
         this.id = id;
     }
 
-    public Long getCitaId() {
-        return citaId;
+    public Factura() {
+
     }
+
+    public int getId()                       { return id; }
+    public Integer getCitaId()               { return citaId; }
+    public Integer getPacienteId()           { return pacienteId; }
+    public String getPacienteNombre()        { return pacienteNombre; }
+    public String getPacienteDni()           { return pacienteDni; }
+    public String getDescripcion()           { return descripcion; }
+    public double getCosto()                 { return costo; }
+    public LocalDateTime getFechaEmision()   { return fechaEmision; }
 
     public Long getPacienteId() {
         return pacienteId;

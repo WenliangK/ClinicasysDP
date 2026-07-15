@@ -98,42 +98,36 @@ public class NuevaCitaPanel extends JPanel {
     }
 
     public void cargarPacientes() {
-        Paciente seleccionado = (Paciente) cbPaciente.getSelectedItem();
-        Long idSeleccionado = seleccionado == null ? null : seleccionado.getId();
+        // CORREGIDO: getTodos() devuelve CompletableFuture<List<Paciente>>,
+        // no una List directa. Hay que esperar con thenAccept() y solo tocar
+        // el JComboBox (componente Swing) dentro de invokeLater().
         GestorPacientes.getInstancia().getTodos()
                 .thenAccept(lista -> SwingUtilities.invokeLater(() -> {
+                    Object seleccionado = cbPaciente.getSelectedItem();
                     cbPaciente.removeAllItems();
-                    for (Paciente paciente : lista) {
-                        cbPaciente.addItem(paciente);
-                        if (idSeleccionado != null && idSeleccionado.equals(paciente.getId())) {
-                            cbPaciente.setSelectedItem(paciente);
-                        }
-                    }
+                    lista.forEach(cbPaciente::addItem);
+                    if (seleccionado != null) cbPaciente.setSelectedItem(seleccionado);
                 }))
-                .exceptionally(error -> {
-                    SwingUtilities.invokeLater(() -> Validador.mostrarError(this,
-                            "No se pudieron cargar los pacientes: " + RespuestaHttp.mensaje(error)));
+                .exceptionally(ex -> {
+                    SwingUtilities.invokeLater(() ->
+                            Validador.mostrarError(this, "No se pudo cargar la lista de pacientes: " + ex.getMessage()));
                     return null;
                 });
     }
 
     public void cargarMedicos() {
-        Medico seleccionado = (Medico) cbMedico.getSelectedItem();
-        Long idSeleccionado = seleccionado == null ? null : seleccionado.getId();
+        // Mismo problema y misma corrección que cargarPacientes().
         GestorMedicos.getInstancia().getTodos()
                 .thenAccept(lista -> SwingUtilities.invokeLater(() -> {
+                    Object seleccionado = cbMedico.getSelectedItem();
                     cbMedico.removeAllItems();
-                    for (Medico medico : lista) {
-                        cbMedico.addItem(medico);
-                        if (idSeleccionado != null && idSeleccionado.equals(medico.getId())) {
-                            cbMedico.setSelectedItem(medico);
-                        }
-                    }
-                    actualizarDatosMedico();
+                    lista.forEach(cbMedico::addItem);
+                    if (seleccionado != null) cbMedico.setSelectedItem(seleccionado);
+                    actualizarEspecialidad();
                 }))
-                .exceptionally(error -> {
-                    SwingUtilities.invokeLater(() -> Validador.mostrarError(this,
-                            "No se pudieron cargar los médicos: " + RespuestaHttp.mensaje(error)));
+                .exceptionally(ex -> {
+                    SwingUtilities.invokeLater(() ->
+                            Validador.mostrarError(this, "No se pudo cargar la lista de médicos: " + ex.getMessage()));
                     return null;
                 });
     }
@@ -147,15 +141,70 @@ public class NuevaCitaPanel extends JPanel {
     }
 
     private void guardarCita() {
-        Paciente paciente = (Paciente) cbPaciente.getSelectedItem();
-        Medico medicoSeleccionado = (Medico) cbMedico.getSelectedItem();
-        if (paciente == null) {
-            Validador.mostrarError(this, "Selecciona un paciente activo.");
-            return;
-        }
-        if (medicoSeleccionado == null) {
-            Validador.mostrarError(this, "Selecciona un médico activo.");
-            return;
+        try {
+            Paciente paciente = (Paciente) cbPaciente.getSelectedItem();
+            if (paciente == null) { Validador.mostrarError(this, "Selecciona un paciente."); return; }
+            Medico medicoSeleccionado = (Medico) cbMedico.getSelectedItem();
+            if (medicoSeleccionado == null) { Validador.mostrarError(this, "No hay medicos registrados. Registra uno en la tabla 'medicos'."); return; }
+            if (txtMotivo.getText().trim().isEmpty())  { Validador.mostrarError(this, "Ingresa el motivo de la consulta."); return; }
+
+            String tipo = (String) cbTipoAtencion.getSelectedItem();
+            ClinicaFactory factory = tipo.startsWith("PRIVADO") ? new PrivadaFactory() : new PublicaFactory();
+
+            int numeroSala = (int) spinnerSala.getValue();
+            Medico medico = factory.crearMedico(
+                    medicoSeleccionado.getId(), medicoSeleccionado.getNombre(), medicoSeleccionado.getEspecialidad());
+            Sala sala = factory.crearSala(numeroSala, "Consultorio de " + medico.getEspecialidad());
+
+            Date fechaVal = (Date) spinnerFecha.getValue();
+            Date horaVal  = (Date) spinnerHora.getValue();
+            LocalDate ld = fechaVal.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalTime lt = horaVal.toInstant().atZone(ZoneId.systemDefault()).toLocalTime();
+
+            // AÑADIDO: esta es la única de las tres excepciones que tiene
+            // sentido validar aquí mismo, de forma síncrona, porque no
+            // depende de datos del servidor (a diferencia de "cita duplicada"
+            // o "sala ocupada", que necesitarían la lista de citas ya cargada).
+            if (!Validador.validarFechaFutura(ld)) {
+                throw new ExcepcionesPersonalizadas.FechaInvalidaException();
+            }
+
+            LocalDateTime fechaHora = LocalDateTime.of(ld, lt);
+
+            String motivoTexto = txtMotivo.getText().trim();
+
+            // CORREGIDO: registrarCita() ahora devuelve CompletableFuture<Cita>
+            // (antes el método estaba vacío y esto ni siquiera hacía una
+            // petición al servidor). El diálogo de éxito se muestra recién
+            // cuando el servidor confirma que la guardó, no antes.
+            btnGuardar.setEnabled(false);
+            GestorCitas.getInstancia()
+                    .registrarCita(paciente, medico.getNombre(), fechaHora, motivoTexto, sala.getNumero())
+                    .thenAccept(citaGuardada -> SwingUtilities.invokeLater(() -> {
+                        btnGuardar.setEnabled(true);
+                        Validador.mostrarExito(this,
+                                "Cita registrada exitosamente!\n" +
+                                        "Tipo de atencion: " + medico.getTipo() + "\n" +
+                                        "Medico asignado: " + medico + "\n" +
+                                        "Sala asignada: " + sala);
+                        txtMotivo.setText("");
+                    }))
+                    .exceptionally(ex -> {
+                        SwingUtilities.invokeLater(() -> {
+                            btnGuardar.setEnabled(true);
+                            Validador.mostrarError(this, "No se pudo registrar la cita: " + ex.getMessage());
+                        });
+                        return null;
+                    });
+
+        } catch (ExcepcionesPersonalizadas.FechaInvalidaException ex) {
+            // CORREGIDO: CitaDuplicadaException y SalaOcupadaException salieron
+            // del catch porque nada las lanzaba (por eso el error de compilación).
+            // Si más adelante validas duplicados/sala ocupada contra la lista
+            // de citas ya cargada, se vuelven a agregar aquí con su propio "throw".
+            Validador.mostrarError(this, ex.getMessage());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error inesperado: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
         String motivo = txtMotivo.getText().trim();
         if (motivo.isEmpty()) {

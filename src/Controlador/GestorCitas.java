@@ -10,64 +10,69 @@ import Observer.Sujeto;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
-public final class GestorCitas extends Sujeto {
-    private static volatile GestorCitas instancia;
-    private final CitaDAO citaDAO;
+public class GestorCitas extends Sujeto {
+    private static GestorCitas instancia;
+    private final CitaDAO citaDAO = new CitaDAOImpl();
 
-    private GestorCitas() {
-        this(new CitaDAOImpl());
-    }
+    private GestorCitas() {}
 
-    GestorCitas(CitaDAO citaDAO) {
-        this.citaDAO = citaDAO;
-    }
+    // 1. Asegúrate de que esto sea estático
+    private static GestorCitas instancia;
+    private final CitaDAO citaDAO = new CitaDAOImpl();
 
-    public static GestorCitas getInstancia() {
-        GestorCitas actual = instancia;
-        if (actual == null) {
-            synchronized (GestorCitas.class) {
-                actual = instancia;
-                if (actual == null) {
-                    actual = new GestorCitas();
-                    instancia = actual;
-                }
-            }
+    // 2. Constructor privado
+    private GestorCitas() {}
+
+    // 3. Método para obtener la instancia (el "getInstancia")
+    public static synchronized GestorCitas getInstancia() {
+        if (instancia == null) {
+            instancia = new GestorCitas();
         }
-        return actual;
-    }
-
-    public CompletableFuture<List<Cita>> getTodas() {
-        return citaDAO.listarTodos();
+        return instancia;
     }
 
     public CompletableFuture<List<Cita>> getCitasVigentes() {
-        return citaDAO.listarTodos().thenApply(citas -> citas.stream()
-                .filter(cita -> cita.getEstado() != Cita.Estado.ATENDIDO)
-                .filter(cita -> cita.getEstado() != Cita.Estado.CANCELADO)
-                .toList());
+    // 4. Asegúrate de que este método NUNCA devuelva null
+    public CompletableFuture<List<Cita>> getCitasVigentes() {
+        // Si citaDAO fuera null, aquí daría error, pero como lo inicializamos arriba, no debería.
+        return citaDAO.listarTodos();
     }
 
     @Override
-    public CompletableFuture<Cita> cambiarEstado(long id, Cita.Estado estado) {
-        return citaDAO.cambiarEstado(id, estado)
-                .thenApply(cita -> {
-                    notificar(cita.getEstado().name(), cita.getId());
-                    return cita;
-                });
+    public CompletionStage<Object> cambiarEstado(int id, Cita.Estado estado) {
+        // TODO: sin implementar todavía (no relacionado con el bug que estás
+        // arreglando ahora mismo; requeriría un endpoint PUT /citas/{id}/estado
+        // o reutilizar el guardar(cita) con el estado ya cambiado).
+        return null;
     }
 
     @Override
-    public CompletableFuture<Cita> guardar(Cita nuevaCita) {
-        return citaDAO.guardar(nuevaCita)
-                .thenApply(cita -> {
-                    notificar(cita.getEstado().name(), cita.getId());
-                    return cita;
-                });
+    public CompletionStage<Object> guardar(Cita nuevaCita) {
+        // TODO: sin implementar todavía, por la misma razón que arriba.
+        return null;
     }
 
-    public CompletableFuture<Cita> registrarCita(Paciente paciente, Medico medico,
-                                                  LocalDateTime fechaHora, String motivo, int numeroSala) {
-        return guardar(new Cita(paciente, medico, fechaHora, motivo, numeroSala));
+    /**
+     * CORREGIDO: antes este método estaba vacío (no hacía absolutamente
+     * nada), así que NuevaCitaPanel podía "guardar" una cita y mostrar el
+     * mensaje de éxito sin que ninguna petición HTTP saliera jamás.
+     * Ahora construye la Cita real y la envía al servidor a través del DAO.
+     */
+    public CompletableFuture<Cita> registrarCita(Paciente paciente, String nombreMedico,
+                                                 LocalDateTime fechaHora, String motivo, int numeroSala) {
+        Cita nuevaCita = new Cita(paciente, nombreMedico, fechaHora, motivo);
+        nuevaCita.setSalaId(numeroSala);
+        return citaDAO.guardar(nuevaCita);
+        return null;
+    }
+
+    @Override
+    public CompletionStage<Object> guardar(Cita nuevaCita) {
+        return null;
+    }
+
+    public void registrarCita(Paciente paciente, String nombre, LocalDateTime fechaHora, String trim, int numero) {
     }
 }

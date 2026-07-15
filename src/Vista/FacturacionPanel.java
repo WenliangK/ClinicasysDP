@@ -1,7 +1,8 @@
 package Vista;
 
 import Controlador.GestorFacturacion;
-import Controlador.GestorPacientes;
+import DAO.PacienteDAO;
+import DAOImpl.PacienteDAOImpl;
 import Decorator.Facturable;
 import Modelo.Factura;
 import Modelo.Paciente;
@@ -88,13 +89,13 @@ public class FacturacionPanel extends JPanel {
     }
 
     public void cargarPacientes() {
-        GestorPacientes.getInstancia().getTodos().thenAccept(pacientes -> SwingUtilities.invokeLater(() -> {
+        pacienteDAO.listarTodos().thenAccept(pacientes -> SwingUtilities.invokeLater(() -> {
             comboPaciente.removeAllItems();
             comboPaciente.addItem(null);
             for (Paciente p : pacientes) { comboPaciente.addItem(p); }
             comboPaciente.setRenderer(new DefaultListCellRendererPaciente());
         })).exceptionally(ex -> {
-            SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, "Error de red: " + RespuestaHttp.mensaje(ex)));
+            SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, "Error red: " + ex.getMessage()));
             return null;
         });
     }
@@ -115,8 +116,9 @@ public class FacturacionPanel extends JPanel {
 
     private void guardar() {
         if (facturaCalculada == null) return;
-        btnGuardar.setEnabled(false);
+        btnGuardar.setEnabled(false); // prevenir clics múltiples
 
+        // Petición asíncrona de guardado
         gestor.guardarFactura(facturaCalculada, null, pacienteSeleccionado())
                 .thenAccept(f -> SwingUtilities.invokeLater(() -> {
                     JOptionPane.showMessageDialog(this, "Factura guardada correctamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
@@ -125,13 +127,14 @@ public class FacturacionPanel extends JPanel {
                 }))
                 .exceptionally(ex -> {
                     SwingUtilities.invokeLater(() -> {
-                        JOptionPane.showMessageDialog(this, "Error de red: " + RespuestaHttp.mensaje(ex), "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(this, "Error red: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                         btnGuardar.setEnabled(true);
                     });
                     return null;
                 });
     }
 
+    // El método descargarImagen() y construirItems() se mantienen idénticos (no usan BD)
     private void descargarImagen() {
         if (facturaGuardada == null) return;
         try {

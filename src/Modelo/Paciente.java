@@ -8,10 +8,7 @@ public class Paciente {
     private String email;
     private boolean activo = true;
 
-    public Paciente() {
-    }
-
-    public Paciente(Long id, String nombre, String dni, String telefono, String email, boolean activo) {
+    public Paciente(Long id, String nombre, String dni, String telefono, String email) {
         this.id = id;
         this.nombre = nombre;
         this.dni = dni;
@@ -25,7 +22,7 @@ public class Paciente {
     }
 
     public Paciente(String nombre, String dni, String telefono, String email) {
-        this(null, nombre, dni, telefono, email, true);
+        this(null, nombre, dni, telefono, email);
     }
 
     public Long getId() {
@@ -60,8 +57,8 @@ public class Paciente {
         this.telefono = telefono;
     }
 
-    public String getEmail() {
-        return email;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public void setEmail(String email) {
@@ -76,6 +73,8 @@ public class Paciente {
         this.activo = activo;
     }
 
+    // AÑADIDO: sin esto, cualquier JComboBox<Paciente> o JList<Paciente>
+    // muestra "Modelo.Paciente@<hashcode>" en vez del nombre del paciente.
     @Override
     public String toString() {
         return nombre + " - " + dni;
