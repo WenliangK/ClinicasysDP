@@ -3,31 +3,43 @@ package DAOImpl;
 import DAO.MedicoDAO;
 import Modelo.Medico;
 import Singleton.ConexionAPI;
+import Utilidades.GsonFactory;
 import com.google.gson.Gson;
-import java.net.URI;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.time.Duration;
 
 public class MedicoDAOImpl implements MedicoDAO {
-    private final Gson gson = new Gson();
+
+    private static final String ENDPOINT = "/medicos";
+
+    private final Gson gson = GsonFactory.getInstancia();
     private final ConexionAPI conexion = ConexionAPI.getInstancia();
-    private final String baseUrl = "http://100.115.247.43:8080/api";
 
     @Override
     public CompletableFuture<List<Medico>> listarTodos() {
-        return null;
+        HttpRequest request = conexion.requestBuilder(ENDPOINT)
+                .GET()
+                .build();
+
+        return conexion.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(resp -> {
+                    if (resp.statusCode() == 200) {
+                        Type tipoLista = new TypeToken<List<Medico>>() {}.getType();
+                        return (List<Medico>) gson.fromJson(resp.body(), tipoLista);
+                    }
+                    throw new RuntimeException("Error al listar médicos: " + resp.statusCode());
+                });
     }
 
     @Override
     public CompletableFuture<Medico> guardar(Medico medico) {
         String json = gson.toJson(medico);
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/medicos"))
-                .header("Content-Type", "application/json")
-                .timeout(Duration.ofSeconds(15))
+        HttpRequest request = conexion.requestBuilder(ENDPOINT)
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
 
@@ -42,6 +54,16 @@ public class MedicoDAOImpl implements MedicoDAO {
 
     @Override
     public CompletableFuture<Void> eliminar(int id) {
-        return null;
+        HttpRequest request = conexion.requestBuilder(ENDPOINT + "/" + id)
+                .DELETE()
+                .build();
+
+        return conexion.getClient().sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                .thenApply(resp -> {
+                    if (resp.statusCode() == 200 || resp.statusCode() == 204) {
+                        return null;
+                    }
+                    throw new RuntimeException("Error al eliminar médico: " + resp.statusCode());
+                });
     }
 }

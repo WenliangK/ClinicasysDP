@@ -1,6 +1,6 @@
 package Controlador;
 
-import DAO.FacturaDAO; // <-- Ruta de la interfaz corregida
+import DAO.FacturaDAO;
 import DAOImpl.FacturaDAOImpl;
 import Decorator.AnalisisSangreDecorator;
 import Decorator.CitaBase;
@@ -26,7 +26,6 @@ public class GestorFacturacion {
     }
 
     public Facturable calcularFactura(String motivo, boolean incluyeRadiografia, boolean incluyeAnalisis) {
-        // Le pasamos la variable "motivo" para que tu CitaBase ya no marque error
         Facturable factura = new CitaBase(motivo);
 
         if (incluyeRadiografia) {
@@ -63,24 +62,24 @@ public class GestorFacturacion {
     }
 
     public CompletableFuture<Factura> guardarFactura(Facturable facturable, Object extra, Paciente paciente) {
-        // 1. Extraemos los datos del paciente de forma segura si no es nulo
         Integer pacienteId = null;
         String pacienteNombre = null;
         String pacienteDni = null;
 
         if (paciente != null) {
-            pacienteId = paciente.getId();
+            // CORREGIDO: paciente.getId() devuelve Long en tu Modelo.Paciente
+            // actual, y no se puede asignar directamente a un Integer.
+            // .intValue() hace la conversión explícita que pedía el compilador.
+            pacienteId = paciente.getId() != null ? paciente.getId().intValue() : null;
             pacienteNombre = paciente.getNombre();
             pacienteDni = paciente.getDni();
         }
 
-        // 2. Extraemos el ID de la cita (si viene en el objeto 'extra')
         Integer citaId = null;
         if (extra instanceof Integer) {
             citaId = (Integer) extra;
         }
 
-        // 3. ¡AQUÍ ESTÁ LA MAGIA! Usamos tu constructor en lugar de los métodos "set"
         Factura nuevaFactura = new Factura(
                 citaId,
                 pacienteId,
@@ -90,7 +89,6 @@ public class GestorFacturacion {
                 facturable.getCosto()
         );
 
-        // 4. Enviamos al servidor
         return facturaDAO.guardar(nuevaFactura);
     }
 }
