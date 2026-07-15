@@ -17,6 +17,14 @@ public class GestorCitas extends Sujeto {
 
     private GestorCitas() {}
 
+    // 1. Asegúrate de que esto sea estático
+    private static GestorCitas instancia;
+    private final CitaDAO citaDAO = new CitaDAOImpl();
+
+    // 2. Constructor privado
+    private GestorCitas() {}
+
+    // 3. Método para obtener la instancia (el "getInstancia")
     public static synchronized GestorCitas getInstancia() {
         if (instancia == null) {
             instancia = new GestorCitas();
@@ -25,6 +33,9 @@ public class GestorCitas extends Sujeto {
     }
 
     public CompletableFuture<List<Cita>> getCitasVigentes() {
+    // 4. Asegúrate de que este método NUNCA devuelva null
+    public CompletableFuture<List<Cita>> getCitasVigentes() {
+        // Si citaDAO fuera null, aquí daría error, pero como lo inicializamos arriba, no debería.
         return citaDAO.listarTodos();
     }
 
@@ -53,5 +64,14 @@ public class GestorCitas extends Sujeto {
         Cita nuevaCita = new Cita(paciente, nombreMedico, fechaHora, motivo);
         nuevaCita.setSalaId(numeroSala);
         return citaDAO.guardar(nuevaCita);
+        return null;
+    }
+
+    @Override
+    public CompletionStage<Object> guardar(Cita nuevaCita) {
+        return null;
+    }
+
+    public void registrarCita(Paciente paciente, String nombre, LocalDateTime fechaHora, String trim, int numero) {
     }
 }

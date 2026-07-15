@@ -8,6 +8,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
+import com.google.gson.Gson;
+import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
@@ -34,12 +36,26 @@ public class MedicoDAOImpl implements MedicoDAO {
                     }
                     throw new RuntimeException("Error al listar médicos: " + resp.statusCode());
                 });
+import java.time.Duration;
+
+public class MedicoDAOImpl implements MedicoDAO {
+    private final Gson gson = new Gson();
+    private final ConexionAPI conexion = ConexionAPI.getInstancia();
+    private final String baseUrl = "http://100.115.247.43:8080/api";
+
+    @Override
+    public CompletableFuture<List<Medico>> listarTodos() {
+        return null;
     }
 
     @Override
     public CompletableFuture<Medico> guardar(Medico medico) {
         String json = gson.toJson(medico);
         HttpRequest request = conexion.requestBuilder(ENDPOINT)
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/medicos"))
+                .header("Content-Type", "application/json")
+                .timeout(Duration.ofSeconds(15))
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
 
@@ -65,5 +81,8 @@ public class MedicoDAOImpl implements MedicoDAO {
                     }
                     throw new RuntimeException("Error al eliminar médico: " + resp.statusCode());
                 });
+    }
+}
+        return null;
     }
 }

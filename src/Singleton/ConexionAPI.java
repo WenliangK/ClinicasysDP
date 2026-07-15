@@ -23,6 +23,8 @@ public class ConexionAPI {
     // CORREGIDO: unificada con la IP que usa el servidor para conectarse a su
     // propia base de datos (application.properties) -> ajusta si tu IP de
     // Tailscale es distinta.
+public class ConexionAPI {
+    private static ConexionAPI instancia;
     private final String ipServidor = "100.112.174.23";
     private final String puerto = "8080";
     private final String baseUrl;
@@ -66,4 +68,5 @@ public class ConexionAPI {
                 .header("Accept", "application/json")
                 .timeout(Duration.ofSeconds(15));
     }
+}
 }
