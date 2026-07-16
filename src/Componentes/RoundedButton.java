@@ -1,9 +1,4 @@
 package Componentes;
-
-
-
-
-
 import Vista.theme;
 
 import javax.swing.*;
