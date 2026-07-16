@@ -132,6 +132,7 @@ public class FacturacionPanel extends JPanel {
                 });
     }
 
+    // El método descargarImagen() y construirItems() se mantienen idénticos (no usan BD)
     private void descargarImagen() {
         if (facturaGuardada == null) return;
         try {

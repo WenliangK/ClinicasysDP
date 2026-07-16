@@ -76,6 +76,8 @@ public class Paciente {
         this.activo = activo;
     }
 
+    // AÑADIDO: sin esto, cualquier JComboBox<Paciente> o JList<Paciente>
+    // muestra "Modelo.Paciente@<hashcode>" en vez del nombre del paciente.
     @Override
     public String toString() {
         return nombre + " - " + dni;
