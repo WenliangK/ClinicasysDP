@@ -28,7 +28,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MedicosPanel extends JPanel {
+public class    MedicosPanel extends JPanel {
     private final GestorMedicos gestor = GestorMedicos.getInstancia();
     private final List<Medico> medicos = new ArrayList<>();
 

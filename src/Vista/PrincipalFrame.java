@@ -1,6 +1,7 @@
 package Vista;
 import Singleton.GestorConfiguracion;
 
+
 import javax.swing.*;
 import java.awt.*;
 public class PrincipalFrame extends JFrame {
@@ -24,17 +25,52 @@ public class PrincipalFrame extends JFrame {
         setLayout(new BorderLayout());
 
         construirMenuLateral();
+        construirHeader();
         construirAreaContenido();
+        
+    }
+
+    private void construirHeader(){
+
+        JPanel header = new JPanel(new BorderLayout());
+
+        header.setPreferredSize(new Dimension(0,65));
+
+        header.setBackground(Color.WHITE);
+
+        header.setBorder(BorderFactory.createEmptyBorder(10,25,10,25));
+
+        JLabel titulo = new JLabel("Sistema de Gestión Clínica");
+
+        titulo.setFont(new Font("Segoe UI",Font.BOLD,24));
+
+        JLabel usuario = new JLabel("Administrador");
+
+        usuario.setFont(new Font("Segoe UI",Font.PLAIN,15));
+
+        header.add(titulo,BorderLayout.WEST);
+
+        header.add(usuario,BorderLayout.EAST);
+
+        add(header,BorderLayout.NORTH);
+
     }
 
     private void construirMenuLateral() {
         JPanel menu = new JPanel();
         menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));
-        menu.setPreferredSize(new Dimension(200, 0));
-        menu.setBorder(BorderFactory.createEmptyBorder(20, 12, 20, 12));
+        menu.setPreferredSize(new Dimension(240, 0));
+        menu.setBackground(new Color(18, 38, 63));
+        menu.setBorder(BorderFactory.createEmptyBorder(25,20,25,20));
 
-        JLabel lblLogo = new JLabel("<html><b>Clinica<br>San Rafael</b></html>");
-        lblLogo.setFont(new Font("SansSerif", Font.BOLD, 16));
+        JLabel lblLogo = new JLabel(
+                "<html><center><span style='font-size:18px;'>🏥</span><br><b>CLINICASYS</b></center></html>");
+
+        lblLogo.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblLogo.setForeground(Color.WHITE);
+        lblLogo.setHorizontalAlignment(SwingConstants.CENTER);
+        lblLogo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblLogo.setBorder(BorderFactory.createEmptyBorder(20,0,30,0));
         lblLogo.setAlignmentX(Component.LEFT_ALIGNMENT);
         lblLogo.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         menu.add(lblLogo);
@@ -51,6 +87,21 @@ public class PrincipalFrame extends JFrame {
 
     private void agregarBotonMenu(JPanel menu, String texto, String cardName) {
         JButton btn = new JButton(texto);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
+
+        btn.setForeground(Color.WHITE);
+
+        btn.setBackground(new Color(18,38,63));
+
+        btn.setFocusPainted(false);
+
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        btn.setBorder(BorderFactory.createEmptyBorder(12,15,12,15));
+
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE,50));
+
+        btn.putClientProperty("JButton.buttonType","roundRect");
         btn.setAlignmentX(Component.LEFT_ALIGNMENT);
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         btn.setHorizontalAlignment(SwingConstants.LEFT);
@@ -63,13 +114,42 @@ public class PrincipalFrame extends JFrame {
             if (cardName.equals("NUEVA_CITA")) { nuevaCitaPanel.cargarPacientes(); nuevaCitaPanel.cargarMedicos(); }
             if (cardName.equals("FACTURACION"))  facturacionPanel.cargarPacientes();
         });
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+
+                btn.setBackground(new Color(33,150,243));
+
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+
+                btn.setBackground(new Color(18,38,63));
+
+            }
+
+        });
         menu.add(btn);
-        menu.add(Box.createRigidArea(new Dimension(0, 6)));
+        menu.add(Box.createVerticalStrut(12));
     }
+
 
     private void construirAreaContenido() {
         cardLayout = new CardLayout();
+
         panelContenido = new JPanel(cardLayout);
+
+        panelContenido.setBackground(new Color(245,247,250));
+
+        JPanel contenedor = new JPanel(new BorderLayout());
+
+        contenedor.setBackground(new Color(245,247,250));
+
+        contenedor.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
+
+        contenedor.add(panelContenido, BorderLayout.CENTER);
 
         dashboardPanel   = new DashboardCitasPanel();
         pacientesPanel   = new PacientesPanel();
@@ -90,6 +170,6 @@ public class PrincipalFrame extends JFrame {
         panelContenido.add(medicosPanel,     "MEDICOS");
         panelContenido.add(facturacionPanel, "FACTURACION");
 
-        add(panelContenido, BorderLayout.CENTER);
+        add(contenedor, BorderLayout.CENTER);
     }
 }
