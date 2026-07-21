@@ -1,9 +1,4 @@
 package Componentes;
-
-
-
-
-
 import ui.styles.UIStyles;
 
 import javax.swing.JPanel;
