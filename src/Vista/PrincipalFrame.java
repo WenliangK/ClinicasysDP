@@ -1,13 +1,21 @@
 package Vista;
-import Singleton.GestorConfiguracion;
 
+import Componentes.SidebarButton;
+import Singleton.GestorConfiguracion;
+import ui.styles.UIStyles;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
 public class PrincipalFrame extends JFrame {
 
     private CardLayout cardLayout;
     private JPanel panelContenido;
+
+    private final List<SidebarButton> botonesMenu =
+            new ArrayList<>();
 
     private DashboardCitasPanel dashboardPanel;
     private PacientesPanel pacientesPanel;
@@ -16,160 +24,1020 @@ public class PrincipalFrame extends JFrame {
     private FacturacionPanel facturacionPanel;
     private HistorialCitasPanel historialPanel;
 
+
     public PrincipalFrame() {
-        String nombreClinica = GestorConfiguracion.getInstancia().getNombreClinica();
-        setTitle(nombreClinica + " - Sistema de Gestion");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(1100, 680);
-        setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
+        String nombreClinica =
+                GestorConfiguracion
+                        .getInstancia()
+                        .getNombreClinica();
+
+        configurarVentana(
+                nombreClinica
+        );
 
         construirMenuLateral();
         construirHeader();
         construirAreaContenido();
-        
     }
 
-    private void construirHeader(){
 
-        JPanel header = new JPanel(new BorderLayout());
+    private void configurarVentana(
+            String nombreClinica
+    ) {
+        setTitle(
+                nombreClinica
+                        + " - Sistema de Gestión"
+        );
 
-        header.setPreferredSize(new Dimension(0,65));
+        setDefaultCloseOperation(
+                EXIT_ON_CLOSE
+        );
 
-        header.setBackground(Color.WHITE);
+        setMinimumSize(
+                new Dimension(
+                        1080,
+                        680
+                )
+        );
 
-        header.setBorder(BorderFactory.createEmptyBorder(10,25,10,25));
+        setSize(
+                1360,
+                820
+        );
 
-        JLabel titulo = new JLabel("Sistema de Gestión Clínica");
+        setLocationRelativeTo(
+                null
+        );
 
-        titulo.setFont(new Font("Segoe UI",Font.BOLD,24));
+        setLayout(
+                new BorderLayout()
+        );
 
-        JLabel usuario = new JLabel("Administrador");
-
-        usuario.setFont(new Font("Segoe UI",Font.PLAIN,15));
-
-        header.add(titulo,BorderLayout.WEST);
-
-        header.add(usuario,BorderLayout.EAST);
-
-        add(header,BorderLayout.NORTH);
-
+        getContentPane().setBackground(
+                UIStyles.BACKGROUND
+        );
     }
+
+
+    private void construirHeader() {
+        JPanel header =
+                new JPanel(
+                        new BorderLayout(
+                                24,
+                                0
+                        )
+                );
+
+        header.setPreferredSize(
+                new Dimension(
+                        0,
+                        104
+                )
+        );
+
+        header.setBackground(
+                UIStyles.CARD
+        );
+
+        header.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(
+                                0,
+                                0,
+                                1,
+                                0,
+                                UIStyles.BORDER
+                        ),
+                        BorderFactory.createEmptyBorder(
+                                18,
+                                30,
+                                18,
+                                30
+                        )
+                )
+        );
+
+        header.add(
+                crearPanelTitulos(),
+                BorderLayout.CENTER
+        );
+
+        header.add(
+                crearPanelUsuario(),
+                BorderLayout.EAST
+        );
+
+        add(
+                header,
+                BorderLayout.NORTH
+        );
+    }
+
+    private JPanel crearPanelTitulos() {
+        JPanel panelTitulos =
+                new JPanel();
+
+        panelTitulos.setLayout(
+                new BoxLayout(
+                        panelTitulos,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        panelTitulos.setOpaque(
+                false
+        );
+
+        JLabel etiquetaSuperior =
+                new JLabel(
+                        "PANEL ADMINISTRATIVO"
+                );
+
+        etiquetaSuperior.setFont(
+                UIStyles.SMALL
+        );
+
+        etiquetaSuperior.setForeground(
+                UIStyles.PRIMARY
+        );
+
+        etiquetaSuperior.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        JLabel titulo =
+                new JLabel(
+                        "Sistema de Gestión Clínica"
+                );
+
+        titulo.setFont(
+                UIStyles.TITLE
+        );
+
+        titulo.setForeground(
+                UIStyles.TEXT
+        );
+
+        titulo.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        JLabel subtitulo =
+                new JLabel(
+                        "Gestiona citas, pacientes, médicos y facturación desde un único lugar."
+                );
+
+        subtitulo.setFont(
+                UIStyles.NORMAL
+        );
+
+        subtitulo.setForeground(
+                UIStyles.TEXT_SECONDARY
+        );
+
+        subtitulo.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        panelTitulos.add(
+                Box.createVerticalGlue()
+        );
+
+        panelTitulos.add(
+                etiquetaSuperior
+        );
+
+        panelTitulos.add(
+                Box.createVerticalStrut(
+                        4
+                )
+        );
+
+        panelTitulos.add(
+                titulo
+        );
+
+        panelTitulos.add(
+                Box.createVerticalStrut(
+                        4
+                )
+        );
+
+        panelTitulos.add(
+                subtitulo
+        );
+
+        panelTitulos.add(
+                Box.createVerticalGlue()
+        );
+
+        return panelTitulos;
+    }
+
+
+    private JPanel crearPanelUsuario() {
+        JPanel contenedor =
+                new JPanel(
+                        new BorderLayout(
+                                12,
+                                0
+                        )
+                );
+
+        contenedor.setOpaque(
+                false
+        );
+
+        contenedor.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                UIStyles.BORDER,
+                                1,
+                                true
+                        ),
+                        BorderFactory.createEmptyBorder(
+                                8,
+                                12,
+                                8,
+                                14
+                        )
+                )
+        );
+
+        JLabel avatar =
+                new JLabel(
+                        "A",
+                        SwingConstants.CENTER
+                );
+
+        avatar.setFont(
+                new Font(
+                        "Segoe UI",
+                        Font.BOLD,
+                        18
+                )
+        );
+
+        avatar.setForeground(
+                Color.WHITE
+        );
+
+        avatar.setBackground(
+                UIStyles.PRIMARY
+        );
+
+        avatar.setOpaque(
+                true
+        );
+
+        avatar.setPreferredSize(
+                new Dimension(
+                        46,
+                        46
+                )
+        );
+
+        avatar.setMinimumSize(
+                new Dimension(
+                        46,
+                        46
+                )
+        );
+
+        JPanel panelDatos =
+                new JPanel();
+
+        panelDatos.setLayout(
+                new BoxLayout(
+                        panelDatos,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        panelDatos.setOpaque(
+                false
+        );
+
+        JLabel nombreUsuario =
+                new JLabel(
+                        "Administrador"
+                );
+
+        nombreUsuario.setFont(
+                UIStyles.BUTTON
+        );
+
+        nombreUsuario.setForeground(
+                UIStyles.TEXT
+        );
+
+        nombreUsuario.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        JLabel rolUsuario =
+                new JLabel(
+                        "Administrador del sistema"
+                );
+
+        rolUsuario.setFont(
+                UIStyles.SMALL
+        );
+
+        rolUsuario.setForeground(
+                UIStyles.TEXT_SECONDARY
+        );
+
+        rolUsuario.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        panelDatos.add(
+                Box.createVerticalGlue()
+        );
+
+        panelDatos.add(
+                nombreUsuario
+        );
+
+        panelDatos.add(
+                Box.createVerticalStrut(
+                        3
+                )
+        );
+
+        panelDatos.add(
+                rolUsuario
+        );
+
+        panelDatos.add(
+                Box.createVerticalGlue()
+        );
+
+        contenedor.add(
+                avatar,
+                BorderLayout.WEST
+        );
+
+        contenedor.add(
+                panelDatos,
+                BorderLayout.CENTER
+        );
+
+        return contenedor;
+    }
+
 
     private void construirMenuLateral() {
-        JPanel menu = new JPanel();
-        menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));
-        menu.setPreferredSize(new Dimension(240, 0));
-        menu.setBackground(new Color(18, 38, 63));
-        menu.setBorder(BorderFactory.createEmptyBorder(25,20,25,20));
+        JPanel menu =
+                new JPanel();
 
-        JLabel lblLogo = new JLabel(
-                "<html><center><span style='font-size:18px;'>🏥</span><br><b>CLINICASYS</b></center></html>");
+        menu.setLayout(
+                new BoxLayout(
+                        menu,
+                        BoxLayout.Y_AXIS
+                )
+        );
 
-        lblLogo.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        lblLogo.setForeground(Color.WHITE);
-        lblLogo.setHorizontalAlignment(SwingConstants.CENTER);
-        lblLogo.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblLogo.setBorder(BorderFactory.createEmptyBorder(20,0,30,0));
-        lblLogo.setAlignmentX(Component.LEFT_ALIGNMENT);
-        lblLogo.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
-        menu.add(lblLogo);
+        menu.setPreferredSize(
+                new Dimension(
+                        280,
+                        0
+                )
+        );
 
-        agregarBotonMenu(menu, "Dashboard Citas",  "DASHBOARD");
-        agregarBotonMenu(menu, "Nueva Cita",       "NUEVA_CITA");
-        agregarBotonMenu(menu, "Historial Citas",  "HISTORIAL");
-        agregarBotonMenu(menu, "Pacientes",        "PACIENTES");
-        agregarBotonMenu(menu, "Medicos",          "MEDICOS");
-        agregarBotonMenu(menu, "Facturacion",      "FACTURACION");
+        menu.setBackground(
+                UIStyles.SIDEBAR
+        );
 
-        add(menu, BorderLayout.WEST);
+        menu.setBorder(
+                BorderFactory.createEmptyBorder(
+                        24,
+                        18,
+                        24,
+                        18
+                )
+        );
+
+        menu.add(
+                crearLogo()
+        );
+
+        menu.add(
+                Box.createVerticalStrut(
+                        22
+                )
+        );
+
+        menu.add(
+                crearEtiquetaSeccion(
+                        "GESTIÓN PRINCIPAL"
+                )
+        );
+
+        menu.add(
+                Box.createVerticalStrut(
+                        10
+                )
+        );
+
+        agregarBotonMenu(
+                menu,
+                "Dashboard de citas",
+                "DASHBOARD"
+        );
+
+        agregarBotonMenu(
+                menu,
+                "Registrar nueva cita",
+                "NUEVA_CITA"
+        );
+
+        agregarBotonMenu(
+                menu,
+                "Historial de citas",
+                "HISTORIAL"
+        );
+
+        menu.add(
+                Box.createVerticalStrut(
+                        14
+                )
+        );
+
+        menu.add(
+                crearEtiquetaSeccion(
+                        "ADMINISTRACIÓN"
+                )
+        );
+
+        menu.add(
+                Box.createVerticalStrut(
+                        10
+                )
+        );
+
+        agregarBotonMenu(
+                menu,
+                "Pacientes",
+                "PACIENTES"
+        );
+
+        agregarBotonMenu(
+                menu,
+                "Médicos",
+                "MEDICOS"
+        );
+
+        agregarBotonMenu(
+                menu,
+                "Facturación",
+                "FACTURACION"
+        );
+
+        menu.add(
+                Box.createVerticalGlue()
+        );
+
+        menu.add(
+                crearPieMenu()
+        );
+
+        add(
+                menu,
+                BorderLayout.WEST
+        );
     }
 
-    private void agregarBotonMenu(JPanel menu, String texto, String cardName) {
-        JButton btn = new JButton(texto);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
+    private JPanel crearLogo() {
+        JPanel panelLogo =
+                new JPanel(
+                        new BorderLayout(
+                                12,
+                                0
+                        )
+                );
 
-        btn.setForeground(Color.WHITE);
+        panelLogo.setOpaque(
+                false
+        );
 
-        btn.setBackground(new Color(18,38,63));
+        panelLogo.setMaximumSize(
+                new Dimension(
+                        Integer.MAX_VALUE,
+                        72
+                )
+        );
 
-        btn.setFocusPainted(false);
+        panelLogo.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
 
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        JLabel icono =
+                new JLabel(
+                        "✚",
+                        SwingConstants.CENTER
+                );
 
-        btn.setBorder(BorderFactory.createEmptyBorder(12,15,12,15));
+        icono.setFont(
+                new Font(
+                        "Segoe UI Symbol",
+                        Font.BOLD,
+                        28
+                )
+        );
 
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE,50));
+        icono.setForeground(
+                Color.WHITE
+        );
 
-        btn.putClientProperty("JButton.buttonType","roundRect");
-        btn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        btn.setHorizontalAlignment(SwingConstants.LEFT);
+        icono.setBackground(
+                new Color(
+                        255,
+                        255,
+                        255,
+                        30
+                )
+        );
+
+        icono.setOpaque(
+                true
+        );
+
+        icono.setPreferredSize(
+                new Dimension(
+                        54,
+                        54
+                )
+        );
+
+        JPanel textos =
+                new JPanel();
+
+        textos.setLayout(
+                new BoxLayout(
+                        textos,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        textos.setOpaque(
+                false
+        );
+
+        JLabel nombre =
+                new JLabel(
+                        "CLINICASYS"
+                );
+
+        nombre.setFont(
+                new Font(
+                        "Segoe UI",
+                        Font.BOLD,
+                        21
+                )
+        );
+
+        nombre.setForeground(
+                Color.WHITE
+        );
+
+        nombre.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        JLabel descripcion =
+                new JLabel(
+                        "Sistema Médico"
+                );
+
+        descripcion.setFont(
+                new Font(
+                        "Segoe UI",
+                        Font.PLAIN,
+                        12
+                )
+        );
+
+        descripcion.setForeground(
+                new Color(
+                        205,
+                        218,
+                        232
+                )
+        );
+
+        descripcion.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        textos.add(
+                Box.createVerticalGlue()
+        );
+
+        textos.add(
+                nombre
+        );
+
+        textos.add(
+                Box.createVerticalStrut(
+                        3
+                )
+        );
+
+        textos.add(
+                descripcion
+        );
+
+        textos.add(
+                Box.createVerticalGlue()
+        );
+
+        panelLogo.add(
+                icono,
+                BorderLayout.WEST
+        );
+
+        panelLogo.add(
+                textos,
+                BorderLayout.CENTER
+        );
+
+        return panelLogo;
+    }
+
+    private JLabel crearEtiquetaSeccion(
+            String texto
+    ) {
+        JLabel etiqueta =
+                new JLabel(
+                        texto
+                );
+
+        etiqueta.setFont(
+                new Font(
+                        "Segoe UI",
+                        Font.BOLD,
+                        10
+                )
+        );
+
+        etiqueta.setForeground(
+                new Color(
+                        157,
+                        177,
+                        198
+                )
+        );
+
+        etiqueta.setBorder(
+                BorderFactory.createEmptyBorder(
+                        0,
+                        12,
+                        0,
+                        0
+                )
+        );
+
+        etiqueta.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        etiqueta.setMaximumSize(
+                new Dimension(
+                        Integer.MAX_VALUE,
+                        24
+                )
+        );
+
+        return etiqueta;
+    }
+
+    private JPanel crearPieMenu() {
+        JPanel pie =
+                new JPanel();
+
+        pie.setLayout(
+                new BoxLayout(
+                        pie,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        pie.setOpaque(
+                false
+        );
+
+        pie.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        pie.setMaximumSize(
+                new Dimension(
+                        Integer.MAX_VALUE,
+                        70
+                )
+        );
+
+        pie.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(
+                                1,
+                                0,
+                                0,
+                                0,
+                                new Color(
+                                        255,
+                                        255,
+                                        255,
+                                        30
+                                )
+                        ),
+                        BorderFactory.createEmptyBorder(
+                                14,
+                                12,
+                                0,
+                                12
+                        )
+                )
+        );
+
+        JLabel estado =
+                new JLabel(
+                        "● Sistema conectado"
+                );
+
+        estado.setFont(
+                new Font(
+                        "Segoe UI",
+                        Font.BOLD,
+                        11
+                )
+        );
+
+        estado.setForeground(
+                new Color(
+                        103,
+                        232,
+                        174
+                )
+        );
+
+        estado.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        JLabel version =
+                new JLabel(
+                        "ClínicaSys · Panel administrativo"
+                );
+
+        version.setFont(
+                new Font(
+                        "Segoe UI",
+                        Font.PLAIN,
+                        10
+                )
+        );
+
+        version.setForeground(
+                new Color(
+                        167,
+                        185,
+                        204
+                )
+        );
+
+        version.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        pie.add(
+                estado
+        );
+
+        pie.add(
+                Box.createVerticalStrut(
+                        6
+                )
+        );
+
+        pie.add(
+                version
+        );
+
+        return pie;
+    }
+
+    /*
+     * =========================================================
+     * BOTONES DEL MENÚ
+     * =========================================================
+     */
+
+    private void agregarBotonMenu(
+            JPanel menu,
+            String texto,
+            String cardName
+    ) {
+        SidebarButton btn =
+                new SidebarButton(
+                        texto
+                );
+
+        boolean esDashboard =
+                cardName.equals(
+                        "DASHBOARD"
+                );
+
+        btn.setActivo(
+                esDashboard
+        );
+
+        btn.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        btn.setMaximumSize(
+                new Dimension(
+                        Integer.MAX_VALUE,
+                        btn.getPreferredSize().height
+                )
+        );
+
+        botonesMenu.add(
+                btn
+        );
+
+        /*
+         * Se mantiene exactamente la navegación original.
+         */
         btn.addActionListener(e -> {
-            cardLayout.show(panelContenido, cardName);
-            if (cardName.equals("DASHBOARD"))    dashboardPanel.cargarDatos();
-            if (cardName.equals("PACIENTES"))    pacientesPanel.cargarTabla();
-            if (cardName.equals("MEDICOS"))      medicosPanel.cargarTabla();
-            if (cardName.equals("HISTORIAL"))    historialPanel.cargarDatos();
-            if (cardName.equals("NUEVA_CITA")) { nuevaCitaPanel.cargarPacientes(); nuevaCitaPanel.cargarMedicos(); }
-            if (cardName.equals("FACTURACION"))  facturacionPanel.cargarPacientes();
-        });
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            actualizarBotonActivo(
+                    btn
+            );
 
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
+            cardLayout.show(
+                    panelContenido,
+                    cardName
+            );
 
-                btn.setBackground(new Color(33,150,243));
-
+            if (cardName.equals(
+                    "DASHBOARD"
+            )) {
+                dashboardPanel.cargarDatos();
             }
 
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-
-                btn.setBackground(new Color(18,38,63));
-
+            if (cardName.equals(
+                    "PACIENTES"
+            )) {
+                pacientesPanel.cargarTabla();
             }
 
+            if (cardName.equals(
+                    "MEDICOS"
+            )) {
+                medicosPanel.cargarTabla();
+            }
+
+            if (cardName.equals(
+                    "HISTORIAL"
+            )) {
+                historialPanel.cargarDatos();
+            }
+
+            if (cardName.equals(
+                    "NUEVA_CITA"
+            )) {
+                nuevaCitaPanel.cargarPacientes();
+                nuevaCitaPanel.cargarMedicos();
+            }
+
+            if (cardName.equals(
+                    "FACTURACION"
+            )) {
+                facturacionPanel.cargarPacientes();
+            }
         });
-        menu.add(btn);
-        menu.add(Box.createVerticalStrut(12));
+
+        menu.add(
+                btn
+        );
+
+        menu.add(
+                Box.createVerticalStrut(
+                        7
+                )
+        );
+    }
+
+    private void actualizarBotonActivo(
+            SidebarButton botonSeleccionado
+    ) {
+        for (SidebarButton boton : botonesMenu) {
+            boton.setActivo(
+                    boton == botonSeleccionado
+            );
+        }
     }
 
 
     private void construirAreaContenido() {
-        cardLayout = new CardLayout();
+        cardLayout =
+                new CardLayout();
 
-        panelContenido = new JPanel(cardLayout);
+        panelContenido =
+                new JPanel(
+                        cardLayout
+                );
 
-        panelContenido.setBackground(new Color(245,247,250));
+        panelContenido.setBackground(
+                UIStyles.BACKGROUND
+        );
 
-        JPanel contenedor = new JPanel(new BorderLayout());
+        JPanel contenedor =
+                new JPanel(
+                        new BorderLayout()
+                );
 
-        contenedor.setBackground(new Color(245,247,250));
+        contenedor.setBackground(
+                UIStyles.BACKGROUND
+        );
 
-        contenedor.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
+        contenedor.setBorder(
+                BorderFactory.createEmptyBorder(
+                        0,
+                        0,
+                        0,
+                        0
+                )
+        );
 
-        contenedor.add(panelContenido, BorderLayout.CENTER);
+        dashboardPanel =
+                new DashboardCitasPanel();
 
-        dashboardPanel   = new DashboardCitasPanel();
-        pacientesPanel   = new PacientesPanel();
-        medicosPanel     = new MedicosPanel();
-        nuevaCitaPanel   = new NuevaCitaPanel();
-        facturacionPanel = new FacturacionPanel();
-        historialPanel   = new HistorialCitasPanel();
+        pacientesPanel =
+                new PacientesPanel();
+
+        medicosPanel =
+                new MedicosPanel();
+
+        nuevaCitaPanel =
+                new NuevaCitaPanel();
+
+        facturacionPanel =
+                new FacturacionPanel();
+
+        historialPanel =
+                new HistorialCitasPanel();
 
         dashboardPanel.setOnCitaFinalizada(() -> {
             historialPanel.cargarDatos();
-            cardLayout.show(panelContenido, "HISTORIAL");
+
+            cardLayout.show(
+                    panelContenido,
+                    "HISTORIAL"
+            );
         });
 
-        panelContenido.add(dashboardPanel,   "DASHBOARD");
-        panelContenido.add(nuevaCitaPanel,   "NUEVA_CITA");
-        panelContenido.add(historialPanel,   "HISTORIAL");
-        panelContenido.add(pacientesPanel,   "PACIENTES");
-        panelContenido.add(medicosPanel,     "MEDICOS");
-        panelContenido.add(facturacionPanel, "FACTURACION");
+        panelContenido.add(
+                dashboardPanel,
+                "DASHBOARD"
+        );
 
-        add(contenedor, BorderLayout.CENTER);
+        panelContenido.add(
+                nuevaCitaPanel,
+                "NUEVA_CITA"
+        );
+
+        panelContenido.add(
+                historialPanel,
+                "HISTORIAL"
+        );
+
+        panelContenido.add(
+                pacientesPanel,
+                "PACIENTES"
+        );
+
+        panelContenido.add(
+                medicosPanel,
+                "MEDICOS"
+        );
+
+        panelContenido.add(
+                facturacionPanel,
+                "FACTURACION"
+        );
+
+        contenedor.add(
+                panelContenido,
+                BorderLayout.CENTER
+        );
+
+        add(
+                contenedor,
+                BorderLayout.CENTER
+        );
     }
 }

@@ -1,16 +1,16 @@
 package Componentes;
-import Vista.theme;
 
 import javax.swing.*;
 import java.awt.*;
+import ui.styles.UIStyles;
 
 public class RoundedButton extends JButton {
 
     public RoundedButton(String text) {
         super(text);
 
-        setFont(theme.NORMAL);
-        setBackground(theme.PRIMARY);
+        setFont(UIStyles.NORMAL);
+        setBackground(UIStyles.PRIMARY);
         setForeground(Color.WHITE);
 
         setFocusPainted(false);
