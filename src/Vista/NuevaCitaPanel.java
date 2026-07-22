@@ -15,7 +15,6 @@ import Controlador.GestorMedicos;
 import Controlador.GestorPacientes;
 import Modelo.Medico;
 import Modelo.Paciente;
-import Modelo.Sala;
 import Utilidades.RespuestaHttp;
 import Utilidades.Validador;
 import ui.styles.UIStyles;
@@ -44,6 +43,7 @@ public class NuevaCitaPanel extends JPanel {
 
     private ModernButton btnGuardar;
     private JLabel lblEstado;
+    private int solicitudSalaActual;
 
     public NuevaCitaPanel() {
         configurarPanel();
@@ -239,6 +239,7 @@ public class NuevaCitaPanel extends JPanel {
         spinnerSala = new JSpinner(
                 new SpinnerNumberModel(1, 1, 20, 1)
         );
+        spinnerSala.setEnabled(false);
 
         spinnerFecha = new JSpinner(
                 new SpinnerDateModel()
@@ -263,6 +264,9 @@ public class NuevaCitaPanel extends JPanel {
         aplicarEstiloSpinner(spinnerSala);
         aplicarEstiloSpinner(spinnerFecha);
         aplicarEstiloSpinner(spinnerHora);
+
+        spinnerFecha.addChangeListener(e -> actualizarSalaAutomatica());
+        spinnerHora.addChangeListener(e -> actualizarSalaAutomatica());
     }
 
     private RoundedPanel crearTarjetaDatosAtencion() {
@@ -729,6 +733,62 @@ public class NuevaCitaPanel extends JPanel {
                             : "PRIVADO"
             );
         }
+
+        actualizarSalaAutomatica();
+    }
+
+    /**
+     * Consulta y muestra automaticamente la primera sala libre para
+     * el medico, la fecha y la hora seleccionados.
+     */
+    private void actualizarSalaAutomatica() {
+        if (spinnerFecha == null || spinnerHora == null || spinnerSala == null) {
+            return;
+        }
+
+        Medico medico = (Medico) cbMedico.getSelectedItem();
+        if (medico == null) {
+            return;
+        }
+
+        LocalDateTime fechaHora = obtenerFechaHoraSeleccionada();
+        int solicitud = ++solicitudSalaActual;
+
+        GestorCitas.getInstancia()
+                .obtenerSalaDisponible(medico, fechaHora)
+                .thenAccept(sala -> SwingUtilities.invokeLater(() -> {
+                    if (solicitud != solicitudSalaActual) {
+                        return;
+                    }
+                    spinnerSala.setValue(sala);
+                    lblEstado.setText("Sala " + sala + " disponible para el horario seleccionado.");
+                }))
+                .exceptionally(error -> {
+                    SwingUtilities.invokeLater(() -> {
+                        if (solicitud != solicitudSalaActual) {
+                            return;
+                        }
+                        lblEstado.setText(RespuestaHttp.mensaje(error));
+                    });
+                    return null;
+                });
+    }
+
+    private LocalDateTime obtenerFechaHoraSeleccionada() {
+        Date fechaValor = (Date) spinnerFecha.getValue();
+        Date horaValor = (Date) spinnerHora.getValue();
+
+        LocalDate fecha = fechaValor.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+
+        LocalTime hora = horaValor.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalTime()
+                .withSecond(0)
+                .withNano(0);
+
+        return LocalDateTime.of(fecha, hora);
     }
 
     /*
@@ -771,33 +831,8 @@ public class NuevaCitaPanel extends JPanel {
             return;
         }
 
-        int numeroSala =
-                (int) spinnerSala.getValue();
-
-        Date fechaValor =
-                (Date) spinnerFecha.getValue();
-
-        Date horaValor =
-                (Date) spinnerHora.getValue();
-
-        LocalDate fecha =
-                fechaValor
-                        .toInstant()
-                        .atZone(
-                                ZoneId.systemDefault()
-                        )
-                        .toLocalDate();
-
-        LocalTime hora =
-                horaValor
-                        .toInstant()
-                        .atZone(
-                                ZoneId.systemDefault()
-                        )
-                        .toLocalTime();
-
         LocalDateTime fechaHora =
-                LocalDateTime.of(fecha, hora);
+                obtenerFechaHoraSeleccionada();
 
         if (fechaHora.isBefore(
                 LocalDateTime.now()
@@ -824,13 +859,6 @@ public class NuevaCitaPanel extends JPanel {
                         medicoSeleccionado.getEspecialidad()
                 );
 
-        Sala sala =
-                factory.crearSala(
-                        numeroSala,
-                        "Consultorio de "
-                                + medico.getEspecialidad()
-                );
-
         btnGuardar.setEnabled(false);
         btnGuardar.setText("Guardando...");
         lblEstado.setText(
@@ -843,8 +871,7 @@ public class NuevaCitaPanel extends JPanel {
                         paciente,
                         medico,
                         fechaHora,
-                        motivo,
-                        sala.getNumero()
+                        motivo
                 )
                 .thenAccept(cita ->
                         SwingUtilities.invokeLater(() -> {
@@ -857,13 +884,15 @@ public class NuevaCitaPanel extends JPanel {
                                     "Cita registrada correctamente."
                             );
 
+                            spinnerSala.setValue(cita.getSalaId());
+
                             Validador.mostrarExito(
                                     this,
                                     "Cita registrada correctamente."
                                             + "\nMédico: "
                                             + medico
-                                            + "\nSala: "
-                                            + sala
+                                            + "\nSala asignada: "
+                                            + cita.getSalaId()
                             );
 
                             txtMotivo.setText("");

@@ -2,6 +2,7 @@ package Vista;
 
 import Componentes.SidebarButton;
 import Singleton.GestorConfiguracion;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import ui.styles.UIStyles;
 
 import javax.swing.*;
@@ -31,27 +32,15 @@ public class PrincipalFrame extends JFrame {
                         .getInstancia()
                         .getNombreClinica();
 
-        configurarVentana(
-                nombreClinica
-        );
-
+        configurarVentana(nombreClinica);
         construirMenuLateral();
         construirHeader();
         construirAreaContenido();
     }
 
-
-    private void configurarVentana(
-            String nombreClinica
-    ) {
-        setTitle(
-                nombreClinica
-                        + " - Sistema de Gestión"
-        );
-
-        setDefaultCloseOperation(
-                EXIT_ON_CLOSE
-        );
+    private void configurarVentana(String nombreClinica) {
+        setTitle(nombreClinica + " - Sistema de Gestión");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         setMinimumSize(
                 new Dimension(
@@ -65,19 +54,13 @@ public class PrincipalFrame extends JFrame {
                 820
         );
 
-        setLocationRelativeTo(
-                null
-        );
-
-        setLayout(
-                new BorderLayout()
-        );
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
         getContentPane().setBackground(
                 UIStyles.BACKGROUND
         );
     }
-
 
     private void construirHeader() {
         JPanel header =
@@ -91,7 +74,7 @@ public class PrincipalFrame extends JFrame {
         header.setPreferredSize(
                 new Dimension(
                         0,
-                        104
+                        96
                 )
         );
 
@@ -109,9 +92,9 @@ public class PrincipalFrame extends JFrame {
                                 UIStyles.BORDER
                         ),
                         BorderFactory.createEmptyBorder(
-                                18,
+                                15,
                                 30,
-                                18,
+                                15,
                                 30
                         )
                 )
@@ -144,9 +127,7 @@ public class PrincipalFrame extends JFrame {
                 )
         );
 
-        panelTitulos.setOpaque(
-                false
-        );
+        panelTitulos.setOpaque(false);
 
         JLabel etiquetaSuperior =
                 new JLabel(
@@ -208,9 +189,7 @@ public class PrincipalFrame extends JFrame {
         );
 
         panelTitulos.add(
-                Box.createVerticalStrut(
-                        4
-                )
+                Box.createVerticalStrut(3)
         );
 
         panelTitulos.add(
@@ -218,9 +197,7 @@ public class PrincipalFrame extends JFrame {
         );
 
         panelTitulos.add(
-                Box.createVerticalStrut(
-                        4
-                )
+                Box.createVerticalStrut(3)
         );
 
         panelTitulos.add(
@@ -234,7 +211,6 @@ public class PrincipalFrame extends JFrame {
         return panelTitulos;
     }
 
-
     private JPanel crearPanelUsuario() {
         JPanel contenedor =
                 new JPanel(
@@ -244,9 +220,7 @@ public class PrincipalFrame extends JFrame {
                         )
                 );
 
-        contenedor.setOpaque(
-                false
-        );
+        contenedor.setOpaque(false);
 
         contenedor.setBorder(
                 BorderFactory.createCompoundBorder(
@@ -256,9 +230,9 @@ public class PrincipalFrame extends JFrame {
                                 true
                         ),
                         BorderFactory.createEmptyBorder(
-                                8,
+                                7,
                                 12,
-                                8,
+                                7,
                                 14
                         )
                 )
@@ -274,7 +248,7 @@ public class PrincipalFrame extends JFrame {
                 new Font(
                         "Segoe UI",
                         Font.BOLD,
-                        18
+                        17
                 )
         );
 
@@ -286,21 +260,12 @@ public class PrincipalFrame extends JFrame {
                 UIStyles.PRIMARY
         );
 
-        avatar.setOpaque(
-                true
-        );
+        avatar.setOpaque(true);
 
         avatar.setPreferredSize(
                 new Dimension(
-                        46,
-                        46
-                )
-        );
-
-        avatar.setMinimumSize(
-                new Dimension(
-                        46,
-                        46
+                        44,
+                        44
                 )
         );
 
@@ -314,9 +279,7 @@ public class PrincipalFrame extends JFrame {
                 )
         );
 
-        panelDatos.setOpaque(
-                false
-        );
+        panelDatos.setOpaque(false);
 
         JLabel nombreUsuario =
                 new JLabel(
@@ -361,9 +324,7 @@ public class PrincipalFrame extends JFrame {
         );
 
         panelDatos.add(
-                Box.createVerticalStrut(
-                        3
-                )
+                Box.createVerticalStrut(3)
         );
 
         panelDatos.add(
@@ -390,7 +351,44 @@ public class PrincipalFrame extends JFrame {
 
     private void construirMenuLateral() {
         JPanel menu =
-                new JPanel();
+                new JPanel() {
+                    @Override
+                    protected void paintComponent(
+                            Graphics graphics
+                    ) {
+                        Graphics2D g2 =
+                                (Graphics2D) graphics.create();
+
+                        g2.setRenderingHint(
+                                RenderingHints.KEY_RENDERING,
+                                RenderingHints.VALUE_RENDER_QUALITY
+                        );
+
+                        GradientPaint degradado =
+                                new GradientPaint(
+                                        0,
+                                        0,
+                                        UIStyles.SIDEBAR,
+                                        0,
+                                        getHeight(),
+                                        new Color(
+                                                12,
+                                                23,
+                                                41
+                                        )
+                                );
+
+                        g2.setPaint(degradado);
+                        g2.fillRect(
+                                0,
+                                0,
+                                getWidth(),
+                                getHeight()
+                        );
+
+                        g2.dispose();
+                    }
+                };
 
         menu.setLayout(
                 new BoxLayout(
@@ -406,15 +404,13 @@ public class PrincipalFrame extends JFrame {
                 )
         );
 
-        menu.setBackground(
-                UIStyles.SIDEBAR
-        );
+        menu.setOpaque(false);
 
         menu.setBorder(
                 BorderFactory.createEmptyBorder(
                         24,
                         18,
-                        24,
+                        22,
                         18
                 )
         );
@@ -424,9 +420,7 @@ public class PrincipalFrame extends JFrame {
         );
 
         menu.add(
-                Box.createVerticalStrut(
-                        22
-                )
+                Box.createVerticalStrut(22)
         );
 
         menu.add(
@@ -436,33 +430,32 @@ public class PrincipalFrame extends JFrame {
         );
 
         menu.add(
-                Box.createVerticalStrut(
-                        10
-                )
+                Box.createVerticalStrut(10)
         );
 
         agregarBotonMenu(
                 menu,
                 "Dashboard de citas",
-                "DASHBOARD"
+                "DASHBOARD",
+                "/icons/layout-dashboard.svg"
         );
 
         agregarBotonMenu(
                 menu,
                 "Registrar nueva cita",
-                "NUEVA_CITA"
+                "NUEVA_CITA",
+                "/icons/calendar-event.svg"
         );
 
         agregarBotonMenu(
                 menu,
                 "Historial de citas",
-                "HISTORIAL"
+                "HISTORIAL",
+                "/icons/history.svg"
         );
 
         menu.add(
-                Box.createVerticalStrut(
-                        14
-                )
+                Box.createVerticalStrut(14)
         );
 
         menu.add(
@@ -472,27 +465,28 @@ public class PrincipalFrame extends JFrame {
         );
 
         menu.add(
-                Box.createVerticalStrut(
-                        10
-                )
+                Box.createVerticalStrut(10)
         );
 
         agregarBotonMenu(
                 menu,
                 "Pacientes",
-                "PACIENTES"
+                "PACIENTES",
+                "/icons/users.svg"
         );
 
         agregarBotonMenu(
                 menu,
                 "Médicos",
-                "MEDICOS"
+                "MEDICOS",
+                "/icons/stethoscope.svg"
         );
 
         agregarBotonMenu(
                 menu,
                 "Facturación",
-                "FACTURACION"
+                "FACTURACION",
+                "/icons/file-invoice.svg"
         );
 
         menu.add(
@@ -513,19 +507,17 @@ public class PrincipalFrame extends JFrame {
         JPanel panelLogo =
                 new JPanel(
                         new BorderLayout(
-                                12,
+                                13,
                                 0
                         )
                 );
 
-        panelLogo.setOpaque(
-                false
-        );
+        panelLogo.setOpaque(false);
 
         panelLogo.setMaximumSize(
                 new Dimension(
                         Integer.MAX_VALUE,
-                        72
+                        68
                 )
         );
 
@@ -535,40 +527,58 @@ public class PrincipalFrame extends JFrame {
 
         JLabel icono =
                 new JLabel(
-                        "✚",
-                        SwingConstants.CENTER
+                        String.valueOf(SwingConstants.CENTER)
                 );
 
-        icono.setFont(
-                new Font(
-                        "Segoe UI Symbol",
-                        Font.BOLD,
-                        28
-                )
-        );
+        Icon iconoHospital =
+                cargarIcono(
+                        "/icons/hospital.svg",
+                        31,
+                        31
+                );
 
-        icono.setForeground(
-                Color.WHITE
-        );
+        if (iconoHospital != null) {
+            icono.setIcon(
+                    iconoHospital
+            );
+        } else {
+            icono.setText(
+                    "✚"
+            );
+
+            icono.setFont(
+                    new Font(
+                            "Segoe UI Symbol",
+                            Font.BOLD,
+                            28
+                    )
+            );
+
+            icono.setForeground(
+                    Color.WHITE
+            );
+        }
 
         icono.setBackground(
                 new Color(
-                        255,
-                        255,
-                        255,
-                        30
+                        37,
+                        99,
+                        235
                 )
         );
 
-        icono.setOpaque(
-                true
-        );
+        icono.setOpaque(true);
 
         icono.setPreferredSize(
                 new Dimension(
                         54,
                         54
                 )
+        );
+
+        icono.putClientProperty(
+                "JComponent.arc",
+                16
         );
 
         JPanel textos =
@@ -581,9 +591,7 @@ public class PrincipalFrame extends JFrame {
                 )
         );
 
-        textos.setOpaque(
-                false
-        );
+        textos.setOpaque(false);
 
         JLabel nombre =
                 new JLabel(
@@ -640,9 +648,7 @@ public class PrincipalFrame extends JFrame {
         );
 
         textos.add(
-                Box.createVerticalStrut(
-                        3
-                )
+                Box.createVerticalStrut(3)
         );
 
         textos.add(
@@ -684,9 +690,9 @@ public class PrincipalFrame extends JFrame {
 
         etiqueta.setForeground(
                 new Color(
-                        157,
-                        177,
-                        198
+                        143,
+                        165,
+                        190
                 )
         );
 
@@ -724,9 +730,7 @@ public class PrincipalFrame extends JFrame {
                 )
         );
 
-        pie.setOpaque(
-                false
-        );
+        pie.setOpaque(false);
 
         pie.setAlignmentX(
                 Component.LEFT_ALIGNMENT
@@ -764,7 +768,7 @@ public class PrincipalFrame extends JFrame {
 
         JLabel estado =
                 new JLabel(
-                        "● Sistema conectado"
+                        "●  Sistema conectado"
                 );
 
         estado.setFont(
@@ -817,9 +821,7 @@ public class PrincipalFrame extends JFrame {
         );
 
         pie.add(
-                Box.createVerticalStrut(
-                        6
-                )
+                Box.createVerticalStrut(6)
         );
 
         pie.add(
@@ -829,20 +831,20 @@ public class PrincipalFrame extends JFrame {
         return pie;
     }
 
-    /*
-     * =========================================================
-     * BOTONES DEL MENÚ
-     * =========================================================
-     */
-
     private void agregarBotonMenu(
             JPanel menu,
             String texto,
-            String cardName
+            String cardName,
+            String rutaIcono
     ) {
         SidebarButton btn =
                 new SidebarButton(
-                        texto
+                        texto,
+                        cargarIcono(
+                                rutaIcono,
+                                20,
+                                20
+                        )
                 );
 
         boolean esDashboard =
@@ -861,7 +863,7 @@ public class PrincipalFrame extends JFrame {
         btn.setMaximumSize(
                 new Dimension(
                         Integer.MAX_VALUE,
-                        btn.getPreferredSize().height
+                        50
                 )
         );
 
@@ -869,9 +871,6 @@ public class PrincipalFrame extends JFrame {
                 btn
         );
 
-        /*
-         * Se mantiene exactamente la navegación original.
-         */
         btn.addActionListener(e -> {
             actualizarBotonActivo(
                     btn
@@ -925,22 +924,57 @@ public class PrincipalFrame extends JFrame {
         );
 
         menu.add(
-                Box.createVerticalStrut(
-                        7
-                )
+                Box.createVerticalStrut(7)
         );
+    }
+
+    private Icon cargarIcono(
+            String ruta,
+            int ancho,
+            int alto
+    ) {
+        try {
+            if (
+                    getClass().getResource(
+                            ruta
+                    ) == null
+            ) {
+                System.err.println(
+                        "No se encontró el icono: "
+                                + ruta
+                );
+
+                return null;
+            }
+
+            return new FlatSVGIcon(
+                    ruta,
+                    ancho,
+                    alto
+            );
+        } catch (Exception ex) {
+            System.err.println(
+                    "No se pudo cargar el icono: "
+                            + ruta
+            );
+
+            return null;
+        }
     }
 
     private void actualizarBotonActivo(
             SidebarButton botonSeleccionado
     ) {
-        for (SidebarButton boton : botonesMenu) {
+        for (
+                SidebarButton boton
+                : botonesMenu
+        ) {
             boton.setActivo(
-                    boton == botonSeleccionado
+                    boton
+                            == botonSeleccionado
             );
         }
     }
-
 
     private void construirAreaContenido() {
         cardLayout =
@@ -962,15 +996,6 @@ public class PrincipalFrame extends JFrame {
 
         contenedor.setBackground(
                 UIStyles.BACKGROUND
-        );
-
-        contenedor.setBorder(
-                BorderFactory.createEmptyBorder(
-                        0,
-                        0,
-                        0,
-                        0
-                )
         );
 
         dashboardPanel =
