@@ -11,11 +11,13 @@ import Componentes.StatusBadge;
 import Controlador.GestorFacturacion;
 import Controlador.GestorPacientes;
 import Decorator.Facturable;
+import Modelo.Cita;
 import Modelo.Factura;
 import Modelo.Paciente;
 import Singleton.GestorConfiguracion;
 import Utilidades.GeneradorFacturaImagen;
 import Utilidades.RespuestaHttp;
+import Utilidades.ServicioCorreo;
 import ui.styles.UIStyles;
 
 import javax.imageio.ImageIO;
@@ -23,6 +25,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,6 +52,13 @@ public class FacturacionPanel extends JPanel {
 
     private Facturable facturaCalculada;
     private Factura facturaGuardada;
+    private Cita citaSeleccionada;
+
+    // Copia exacta de los datos usados para la factura guardada.
+    private Paciente pacienteFacturado;
+    private String motivoFacturado;
+    private List<GeneradorFacturaImagen.ItemFactura> itemsFacturados;
+    private BufferedImage imagenFacturaGuardada;
 
     public FacturacionPanel() {
         configurarPanel();
@@ -234,6 +244,11 @@ public class FacturacionPanel extends JPanel {
         txtMotivo = new ModernTextField("", 25);
         txtMotivo.setPlaceholder(
                 "Ejemplo: Consulta general"
+        );
+        txtMotivo.setEditable(false);
+
+        comboPaciente.addActionListener(
+                e -> cargarMotivoPacienteSeleccionado()
         );
 
         chkRadiografia = crearCheckBox(
@@ -734,14 +749,98 @@ public class FacturacionPanel extends JPanel {
         return (Paciente) comboPaciente.getSelectedItem();
     }
 
+    /**
+     * Busca la cita atendida mas reciente que todavia no tiene factura y
+     * completa automaticamente el motivo sin modificar el diseño del panel.
+     */
+    private void cargarMotivoPacienteSeleccionado() {
+        Paciente paciente = pacienteSeleccionado();
+
+        citaSeleccionada = null;
+        facturaCalculada = null;
+        facturaGuardada = null;
+        imagenFacturaGuardada = null;
+        txtMotivo.setText("");
+        txtResultado.setText(
+                "La vista previa de la boleta aparecerá aquí."
+        );
+        btnGuardar.setEnabled(false);
+        btnDescargarImagen.setEnabled(false);
+
+        if (paciente == null || paciente.getId() == null) {
+            lblEstado.setText(
+                    "Selecciona un paciente con una cita atendida."
+            );
+            return;
+        }
+
+        lblEstado.setText(
+                "Buscando atención pendiente de facturación..."
+        );
+
+        gestor.buscarCitaPendienteFacturacion(paciente.getId())
+                .thenAccept(cita ->
+                        SwingUtilities.invokeLater(() -> {
+                            citaSeleccionada = cita;
+
+                            if (cita == null) {
+                                txtMotivo.setText("");
+                                lblEstado.setText(
+                                        "El paciente no tiene citas atendidas pendientes de facturación."
+                                );
+                                return;
+                            }
+
+                            txtMotivo.setText(
+                                    cita.getMotivo() == null
+                                            ? ""
+                                            : cita.getMotivo()
+                            );
+
+                            lblEstado.setText(
+                                    "Motivo cargado desde la cita #"
+                                            + cita.getId()
+                                            + "."
+                            );
+                        })
+                )
+                .exceptionally(error -> {
+                    SwingUtilities.invokeLater(() -> {
+                        citaSeleccionada = null;
+                        txtMotivo.setText("");
+                        lblEstado.setText(
+                                "No se pudo consultar la atención del paciente."
+                        );
+
+                        JOptionPane.showMessageDialog(
+                                this,
+                                RespuestaHttp.mensaje(error),
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE
+                        );
+                    });
+                    return null;
+                });
+    }
+
     private void calcular() {
         String motivo =
                 txtMotivo.getText().trim();
 
+        if (citaSeleccionada == null || citaSeleccionada.getId() == null) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "El paciente no tiene una cita atendida pendiente de facturación.",
+                    "Requerido",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
         if (motivo.isEmpty()) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Ingresa el motivo.",
+                    "No se encontró el motivo de la cita.",
                     "Requerido",
                     JOptionPane.WARNING_MESSAGE
             );
@@ -777,7 +876,12 @@ public class FacturacionPanel extends JPanel {
     }
 
     private void guardar() {
-        if (facturaCalculada == null) {
+        if (facturaCalculada == null || citaSeleccionada == null) {
+            return;
+        }
+
+        Paciente paciente = pacienteSeleccionado();
+        if (paciente == null) {
             return;
         }
 
@@ -790,29 +894,32 @@ public class FacturacionPanel extends JPanel {
 
         gestor.guardarFactura(
                         facturaCalculada,
-                        null,
-                        pacienteSeleccionado()
+                        citaSeleccionada.getId(),
+                        paciente
                 )
                 .thenAccept(factura ->
                         SwingUtilities.invokeLater(() -> {
                             facturaGuardada = factura;
 
+                            // Se conservan los datos exactos usados al guardar.
+                            pacienteFacturado = paciente;
+                            motivoFacturado = txtMotivo.getText().trim();
+                            itemsFacturados = construirItems();
+                            imagenFacturaGuardada = generarImagenFacturaGuardada();
+
                             btnGuardar.setText(
                                     "Factura guardada"
                             );
 
-                            btnDescargarImagen.setEnabled(true);
+                            btnDescargarImagen.setEnabled(
+                                    imagenFacturaGuardada != null
+                            );
 
                             lblEstado.setText(
-                                    "Factura guardada correctamente."
+                                    "Factura guardada. Enviando al correo del paciente..."
                             );
 
-                            JOptionPane.showMessageDialog(
-                                    this,
-                                    "Factura guardada correctamente.",
-                                    "Éxito",
-                                    JOptionPane.INFORMATION_MESSAGE
-                            );
+                            enviarFacturaAlCorreo();
                         })
                 )
                 .exceptionally(error -> {
@@ -828,8 +935,7 @@ public class FacturacionPanel extends JPanel {
 
                         JOptionPane.showMessageDialog(
                                 this,
-                                "Error de red: "
-                                        + RespuestaHttp.mensaje(error),
+                                RespuestaHttp.mensaje(error),
                                 "Error",
                                 JOptionPane.ERROR_MESSAGE
                         );
@@ -839,47 +945,117 @@ public class FacturacionPanel extends JPanel {
                 });
     }
 
+    private BufferedImage generarImagenFacturaGuardada() {
+        if (facturaGuardada == null || pacienteFacturado == null) {
+            return null;
+        }
+
+        return GeneradorFacturaImagen.generar(
+                GestorConfiguracion
+                        .getInstancia()
+                        .getNombreClinica(),
+                facturaGuardada.getId(),
+                facturaGuardada.getFechaEmision(),
+                pacienteFacturado.getNombre(),
+                pacienteFacturado.getDni(),
+                pacienteFacturado.getTelefono(),
+                motivoFacturado,
+                itemsFacturados
+        );
+    }
+
+    private void enviarFacturaAlCorreo() {
+        if (facturaGuardada == null
+                || pacienteFacturado == null
+                || imagenFacturaGuardada == null) {
+            return;
+        }
+
+        String correo = pacienteFacturado.getEmail();
+        if (correo == null || correo.isBlank()) {
+            lblEstado.setText(
+                    "Factura guardada, pero el paciente no tiene correo registrado."
+            );
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "La factura fue guardada correctamente, pero el paciente no tiene un correo registrado.\n"
+                            + "Puedes descargarla como imagen.",
+                    "Factura guardada",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        try {
+            ByteArrayOutputStream salida = new ByteArrayOutputStream();
+            ImageIO.write(imagenFacturaGuardada, "png", salida);
+
+            ServicioCorreo.getInstancia()
+                    .enviarFactura(
+                            correo,
+                            pacienteFacturado.getNombre(),
+                            facturaGuardada.getId(),
+                            salida.toByteArray()
+                    )
+                    .thenRun(() ->
+                            SwingUtilities.invokeLater(() -> {
+                                lblEstado.setText(
+                                        "Factura enviada correctamente a "
+                                                + correo
+                                                + "."
+                                );
+
+                                JOptionPane.showMessageDialog(
+                                        this,
+                                        "Factura guardada y enviada correctamente a:\n"
+                                                + correo,
+                                        "Éxito",
+                                        JOptionPane.INFORMATION_MESSAGE
+                                );
+                            })
+                    )
+                    .exceptionally(error -> {
+                        SwingUtilities.invokeLater(() -> {
+                            lblEstado.setText(
+                                    "Factura guardada, pero no se pudo enviar el correo."
+                            );
+
+                            JOptionPane.showMessageDialog(
+                                    this,
+                                    "La factura se guardó correctamente, pero no se pudo enviar al correo.\n"
+                                            + RespuestaHttp.mensaje(error)
+                                            + "\n\nPuedes descargarla como imagen.",
+                                    "Correo no enviado",
+                                    JOptionPane.WARNING_MESSAGE
+                            );
+                        });
+                        return null;
+                    });
+        } catch (IOException error) {
+            lblEstado.setText(
+                    "Factura guardada, pero no se pudo preparar el archivo para el correo."
+            );
+        }
+    }
+
     private void descargarImagen() {
         if (facturaGuardada == null) {
             return;
         }
 
         try {
-            Paciente paciente =
-                    pacienteSeleccionado();
+            BufferedImage imagen = imagenFacturaGuardada;
 
-            List<GeneradorFacturaImagen.ItemFactura> items =
-                    construirItems();
+            if (imagen == null) {
+                imagen = generarImagenFacturaGuardada();
+            }
 
-            BufferedImage imagen =
-                    GeneradorFacturaImagen.generar(
-                            GestorConfiguracion
-                                    .getInstancia()
-                                    .getNombreClinica(),
-
-                            facturaGuardada.getId(),
-
-                            facturaGuardada
-                                    .getFechaEmision(),
-
-                            paciente != null
-                                    ? paciente.getNombre()
-                                    : null,
-
-                            paciente != null
-                                    ? paciente.getDni()
-                                    : null,
-
-                            paciente != null
-                                    ? paciente.getTelefono()
-                                    : null,
-
-                            txtMotivo
-                                    .getText()
-                                    .trim(),
-
-                            items
-                    );
+            if (imagen == null) {
+                throw new IOException(
+                        "No se pudo reconstruir la imagen de la factura."
+                );
+            }
 
             JFileChooser chooser =
                     new JFileChooser();
