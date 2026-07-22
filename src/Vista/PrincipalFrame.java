@@ -25,6 +25,7 @@ public class PrincipalFrame extends JFrame {
     private FacturacionPanel facturacionPanel;
     private HistorialCitasPanel historialPanel;
 
+
     public PrincipalFrame() {
         String nombreClinica =
                 GestorConfiguracion
@@ -346,6 +347,7 @@ public class PrincipalFrame extends JFrame {
 
         return contenedor;
     }
+
 
     private void construirMenuLateral() {
         JPanel menu =
