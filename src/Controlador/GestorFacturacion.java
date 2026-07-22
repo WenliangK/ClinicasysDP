@@ -65,7 +65,11 @@ public final class GestorFacturacion {
         return factura;
     }
 
-    public String generarBoleta(Facturable facturable, Paciente paciente) {
+    public String generarBoleta(
+            Facturable facturable,
+            Paciente paciente,
+            Cita cita
+    ) {
         StringBuilder sb = new StringBuilder();
         sb.append("=====================================\n");
         sb.append("        CLÍNICA SAN RAFAEL           \n");
@@ -73,20 +77,43 @@ public final class GestorFacturacion {
         sb.append("=====================================\n");
 
         if (paciente != null) {
-            sb.append("Paciente: ").append(paciente.getNombre()).append("\n");
-            sb.append("DNI: ").append(paciente.getDni()).append("\n");
+            sb.append("Paciente: ")
+                    .append(paciente.getNombre())
+                    .append("\n");
+            sb.append("DNI: ")
+                    .append(paciente.getDni())
+                    .append("\n");
         } else {
             sb.append("Paciente: Público en General\n");
         }
+
+        sb.append("Médico: ")
+                .append(obtenerNombreMedico(cita))
+                .append("\n");
 
         sb.append("-------------------------------------\n");
         sb.append("Detalle de los servicios:\n\n");
         sb.append(facturable.getDescripcion()).append("\n");
         sb.append("-------------------------------------\n");
-        sb.append(String.format("TOTAL A PAGAR:       S/ %.2f\n", facturable.getCosto()));
+        sb.append(
+                String.format(
+                        "TOTAL A PAGAR:       S/ %.2f\n",
+                        facturable.getCosto()
+                )
+        );
         sb.append("=====================================\n");
 
         return sb.toString();
+    }
+
+    private static String obtenerNombreMedico(Cita cita) {
+        if (cita == null
+                || cita.getMedico() == null
+                || cita.getMedico().isBlank()) {
+            return "No asignado";
+        }
+
+        return cita.getMedico().trim();
     }
 
     /**
