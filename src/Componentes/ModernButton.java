@@ -53,11 +53,7 @@ public class ModernButton extends JButton {
         );
     }
 
-    /*
-     * =========================================================
-     * CONFIGURACIÓN GENERAL
-     * =========================================================
-     */
+
 
     private void configurarBoton() {
         setFont(
@@ -126,11 +122,7 @@ public class ModernButton extends JButton {
         );
     }
 
-    /*
-     * =========================================================
-     * ESTILOS SEGÚN TIPO
-     * =========================================================
-     */
+
 
     public final void aplicarTipo(
             Tipo nuevoTipo
@@ -249,11 +241,7 @@ public class ModernButton extends JButton {
         repaint();
     }
 
-    /*
-     * =========================================================
-     * EVENTOS VISUALES
-     * =========================================================
-     */
+
 
     private void configurarEventosVisuales() {
         addMouseListener(
@@ -313,11 +301,7 @@ public class ModernButton extends JButton {
         );
     }
 
-    /*
-     * =========================================================
-     * PINTADO PERSONALIZADO
-     * =========================================================
-     */
+
 
     @Override
     protected void paintComponent(
@@ -334,9 +318,7 @@ public class ModernButton extends JButton {
         Color fondo =
                 obtenerColorActual();
 
-        /*
-         * Sombra ligera.
-         */
+
         if (isEnabled()
                 && tipo != Tipo.SECUNDARIO) {
 
@@ -359,9 +341,7 @@ public class ModernButton extends JButton {
             );
         }
 
-        /*
-         * Fondo principal.
-         */
+
         g2.setColor(
                 fondo
         );
@@ -375,9 +355,7 @@ public class ModernButton extends JButton {
                 14
         );
 
-        /*
-         * Borde para botón secundario.
-         */
+
         if (tipo == Tipo.SECUNDARIO) {
             g2.setColor(
                     mouseEncima
@@ -428,11 +406,7 @@ public class ModernButton extends JButton {
         return colorBase;
     }
 
-    /*
-     * =========================================================
-     * UTILIDADES DE COLOR
-     * =========================================================
-     */
+
 
     private Color oscurecerColor(
             Color color,
@@ -458,11 +432,7 @@ public class ModernButton extends JButton {
         );
     }
 
-    /*
-     * =========================================================
-     * MÉTODOS PÚBLICOS
-     * =========================================================
-     */
+
 
     public Tipo getTipo() {
         return tipo;

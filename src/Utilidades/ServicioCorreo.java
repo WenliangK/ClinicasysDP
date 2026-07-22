@@ -29,11 +29,7 @@ public final class ServicioCorreo {
         return actual;
     }
 
-    /**
-     * Simula el envío de una factura por correo.
-     *
-     * No se conecta a Gmail ni a ningún servidor SMTP.
-     */
+
     public CompletableFuture<Void> enviarFactura(
             String destinatario,
             String nombrePaciente,

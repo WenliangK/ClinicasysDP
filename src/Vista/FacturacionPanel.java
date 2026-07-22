@@ -54,7 +54,7 @@ public class FacturacionPanel extends JPanel {
     private Factura facturaGuardada;
     private Cita citaSeleccionada;
 
-    // Copia exacta de los datos usados para la factura guardada.
+
     private Paciente pacienteFacturado;
     private String medicoFacturado;
     private String motivoFacturado;

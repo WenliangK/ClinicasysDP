@@ -11,11 +11,7 @@ import java.awt.*;
 
 public class ModernTable extends JTable {
 
-    /*
-     * =========================================================
-     * CONSTRUCTORES
-     * =========================================================
-     */
+
 
     public ModernTable() {
         super();
@@ -29,11 +25,7 @@ public class ModernTable extends JTable {
         configurarTabla();
     }
 
-    /*
-     * =========================================================
-     * CONFIGURACIÓN GENERAL
-     * =========================================================
-     */
+
 
     private void configurarTabla() {
         setFont(
@@ -106,11 +98,7 @@ public class ModernTable extends JTable {
         configurarEncabezado();
     }
 
-    /*
-     * =========================================================
-     * ENCABEZADO
-     * =========================================================
-     */
+
 
     private void configurarEncabezado() {
         JTableHeader encabezado =
@@ -242,11 +230,7 @@ public class ModernTable extends JTable {
         return SwingConstants.LEFT;
     }
 
-    /*
-     * =========================================================
-     * RENDERIZADOR GENERAL DE CELDAS
-     * =========================================================
-     */
+
 
     @Override
     public Component prepareRenderer(
@@ -308,11 +292,7 @@ public class ModernTable extends JTable {
         return componente;
     }
 
-    /*
-     * =========================================================
-     * CORRECCIÓN CUANDO CAMBIA EL MODELO
-     * =========================================================
-     */
+
 
     @Override
     public void setModel(
@@ -331,11 +311,7 @@ public class ModernTable extends JTable {
         }
     }
 
-    /*
-     * =========================================================
-     * MÉTODOS VISUALES OPCIONALES
-     * =========================================================
-     */
+
 
     public void establecerAlturaFilas(
             int altura

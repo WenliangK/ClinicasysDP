@@ -221,11 +221,7 @@ public class StatusBadge extends JLabel {
         repaint();
     }
 
-    /*
-     * =========================================================
-     * PINTADO PERSONALIZADO
-     * =========================================================
-     */
+
 
     @Override
     protected void paintComponent(
@@ -269,9 +265,7 @@ public class StatusBadge extends JLabel {
                 radio
         );
 
-        /*
-         * Borde.
-         */
+
         g2.setColor(
                 colorBorde == null
                         ? UIStyles.BORDER_DARK
@@ -306,11 +300,7 @@ public class StatusBadge extends JLabel {
         );
     }
 
-    /*
-     * =========================================================
-     * MÉTODOS PÚBLICOS
-     * =========================================================
-     */
+
 
     public void setEstado(
             String nuevoEstado
@@ -340,11 +330,7 @@ public class StatusBadge extends JLabel {
         return radio;
     }
 
-    /*
-     * =========================================================
-     * UTILIDADES
-     * =========================================================
-     */
+
 
     private static String formatearTexto(
             String texto

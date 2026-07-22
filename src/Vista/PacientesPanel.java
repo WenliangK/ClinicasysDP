@@ -210,11 +210,7 @@ public class PacientesPanel extends JPanel {
         return tarjeta;
     }
 
-    /*
-     * =========================================================
-     * PANEL INFORMATIVO
-     * =========================================================
-     */
+
 
     private JPanel crearPanelInformativo() {
         JPanel panel =
@@ -611,9 +607,7 @@ public class PacientesPanel extends JPanel {
         btnEditar.setEnabled(false);
         btnCambiarEstado.setEnabled(false);
 
-        /*
-         * Se mantienen los eventos originales.
-         */
+
         btnNuevo.addActionListener(
                 e -> mostrarFormulario(null)
         );
@@ -660,11 +654,7 @@ public class PacientesPanel extends JPanel {
         return panelAcciones;
     }
 
-    /*
-     * =========================================================
-     * ACTUALIZACIÓN AUTOMÁTICA
-     * =========================================================
-     */
+
 
     private void iniciarAutoRefresh() {
         new Timer(
@@ -736,11 +726,7 @@ public class PacientesPanel extends JPanel {
                 });
     }
 
-    /*
-     * =========================================================
-     * EDITAR PACIENTE
-     * =========================================================
-     */
+
 
     private void editarSeleccionado() {
         Paciente paciente =
@@ -754,11 +740,7 @@ public class PacientesPanel extends JPanel {
         mostrarFormulario(paciente);
     }
 
-    /*
-     * =========================================================
-     * FORMULARIO
-     * =========================================================
-     */
+
 
     private void mostrarFormulario(
             Paciente actual
