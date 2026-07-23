@@ -750,10 +750,6 @@ public class FacturacionPanel extends JPanel {
         return (Paciente) comboPaciente.getSelectedItem();
     }
 
-    /**
-     * Busca la cita atendida mas reciente que todavia no tiene factura y
-     * completa automaticamente el motivo sin modificar el diseño del panel.
-     */
     private void cargarMotivoPacienteSeleccionado() {
         Paciente paciente = pacienteSeleccionado();
 

@@ -57,9 +57,6 @@ public class DashboardCard extends RoundedPanel {
                 )
         );
 
-        /*
-         * Barra de color superior.
-         */
         barraSuperior =
                 new JPanel();
 

@@ -589,6 +589,89 @@ public class NuevaCitaPanel extends JPanel {
         return panelInferior;
     }
 
+    private JPanel crearPanelInferior() {
+        JPanel panelInferior = new JPanel(
+                new BorderLayout(18, 0)
+        );
+        panelInferior.setOpaque(false);
+        panelInferior.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(
+                                1,
+                                0,
+                                0,
+                                0,
+                                UIStyles.BORDER
+                        ),
+                        BorderFactory.createEmptyBorder(
+                                18,
+                                0,
+                                0,
+                                0
+                        )
+                )
+        );
+
+        JPanel informacion = new JPanel();
+        informacion.setOpaque(false);
+        informacion.setLayout(
+                new BoxLayout(
+                        informacion,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        JLabel tituloEstado = new JLabel(
+                "Estado del formulario"
+        );
+        tituloEstado.setFont(UIStyles.SMALL);
+        tituloEstado.setForeground(UIStyles.TEXT);
+        tituloEstado.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        lblEstado = new JLabel(
+                "Completa todos los datos requeridos."
+        );
+        lblEstado.setFont(UIStyles.SMALL);
+        lblEstado.setForeground(UIStyles.TEXT_SECONDARY);
+        lblEstado.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        informacion.add(tituloEstado);
+        informacion.add(Box.createVerticalStrut(3));
+        informacion.add(lblEstado);
+
+        btnGuardar = new ModernButton(
+                "Guardar cita",
+                ModernButton.Tipo.PRIMARIO
+        );
+        btnGuardar.setPreferredSize(
+                new Dimension(170, 42)
+        );
+        btnGuardar.addActionListener(
+                e -> guardarCita()
+        );
+
+        JPanel panelBoton = new JPanel(
+                new FlowLayout(
+                        FlowLayout.RIGHT,
+                        0,
+                        0
+                )
+        );
+        panelBoton.setOpaque(false);
+        panelBoton.add(btnGuardar);
+
+        panelInferior.add(
+                informacion,
+                BorderLayout.CENTER
+        );
+        panelInferior.add(
+                panelBoton,
+                BorderLayout.EAST
+        );
+
+        return panelInferior;
+    }
+
     public void cargarPacientes() {
         Paciente seleccionado =
                 (Paciente) cbPaciente.getSelectedItem();
@@ -870,6 +953,45 @@ public class NuevaCitaPanel extends JPanel {
         } catch (RuntimeException error) {
             return null;
         }
+
+        LocalDateTime fechaHora = obtenerFechaHoraSeleccionada();
+        int solicitud = ++solicitudSalaActual;
+
+        GestorCitas.getInstancia()
+                .obtenerSalaDisponible(medico, fechaHora)
+                .thenAccept(sala -> SwingUtilities.invokeLater(() -> {
+                    if (solicitud != solicitudSalaActual) {
+                        return;
+                    }
+                    spinnerSala.setValue(sala);
+                    lblEstado.setText("Sala " + sala + " disponible para el horario seleccionado.");
+                }))
+                .exceptionally(error -> {
+                    SwingUtilities.invokeLater(() -> {
+                        if (solicitud != solicitudSalaActual) {
+                            return;
+                        }
+                        lblEstado.setText(RespuestaHttp.mensaje(error));
+                    });
+                    return null;
+                });
+    }
+
+    private LocalDateTime obtenerFechaHoraSeleccionada() {
+        Date fechaValor = (Date) spinnerFecha.getValue();
+        Date horaValor = (Date) spinnerHora.getValue();
+
+        LocalDate fecha = fechaValor.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+
+        LocalTime hora = horaValor.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalTime()
+                .withSecond(0)
+                .withNano(0);
+
+        return LocalDateTime.of(fecha, hora);
     }
 
     private void guardarCita() {

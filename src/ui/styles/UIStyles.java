@@ -6,7 +6,7 @@ import java.awt.Font;
 public final class UIStyles {
 
     private UIStyles() {
-        // Evita crear instancias de esta clase.
+            
     }
 
 
@@ -76,7 +76,6 @@ public final class UIStyles {
 
     public static final Color FACTURACION_ACCENT =
             new Color(35, 155, 95);
-
 
 
     public static final Color BACKGROUND =

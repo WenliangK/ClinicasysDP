@@ -220,9 +220,6 @@ public class ModernTable extends JTable {
     private int obtenerAlineacionEncabezado(
             int columna
     ) {
-        /*
-         * La primera columna normalmente corresponde al ID.
-         */
         if (columna == 0) {
             return SwingConstants.CENTER;
         }
@@ -292,8 +289,6 @@ public class ModernTable extends JTable {
         return componente;
     }
 
-
-
     @Override
     public void setModel(
             TableModel modelo
@@ -302,10 +297,6 @@ public class ModernTable extends JTable {
                 modelo
         );
 
-        /*
-         * JTable llama a setModel desde su constructor,
-         * por eso comprobamos que el encabezado ya exista.
-         */
         if (getTableHeader() != null) {
             configurarEncabezado();
         }

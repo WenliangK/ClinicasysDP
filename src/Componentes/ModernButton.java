@@ -406,8 +406,6 @@ public class ModernButton extends JButton {
         return colorBase;
     }
 
-
-
     private Color oscurecerColor(
             Color color,
             int cantidad

@@ -47,7 +47,11 @@ public class DashboardCitasPanel
                 .getInstancia()
                 .suscribir(this);
 
+        GestorCitas
+                .getInstancia()
+                .suscribir(this);
 
+       
         iniciarAutoRefresh();
         cargarDatos();
     }
@@ -464,11 +468,7 @@ public class DashboardCitasPanel
                                 44
                         )
                 );
-
-        /*
-         * Este listener únicamente actualiza
-         * la tarjeta visual de cita seleccionada.
-         */
+                
         tablaCitas
                 .getSelectionModel()
                 .addListSelectionListener(evento -> {
@@ -570,9 +570,6 @@ public class DashboardCitasPanel
                                 )
                         );
 
-                        /*
-                         * Filas alternadas.
-                         */
                         if (!seleccionado) {
                             componente.setBackground(
                                     fila % 2 == 0
@@ -999,11 +996,6 @@ public class DashboardCitasPanel
                                                         .name()
                                         }
                                 );
-
-                                /*
-                                 * Conteos utilizados únicamente
-                                 * para las tarjetas y el gráfico.
-                                 */
                                 if (cita.getEstado() != null) {
                                     String estadoActual =
                                             cita
@@ -1065,9 +1057,6 @@ public class DashboardCitasPanel
                                     cantidadConsultorio
                             );
 
-                            /*
-                             * Actualización visual del estado.
-                             */
                             actualizarTarjetaSeleccionada();
 
                             lblEstado.setText(

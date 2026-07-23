@@ -116,9 +116,6 @@ public final class GestorFacturacion {
         return cita.getMedico().trim();
     }
 
-    /**
-     * Obtiene la cita ATENDIDA mas reciente del paciente que aun no fue facturada.
-     */
     public CompletableFuture<Cita> buscarCitaPendienteFacturacion(Long pacienteId) {
         if (pacienteId == null) {
             return CompletableFuture.completedFuture(null);

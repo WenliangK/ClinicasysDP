@@ -210,8 +210,6 @@ public class PacientesPanel extends JPanel {
         return tarjeta;
     }
 
-
-
     private JPanel crearPanelInformativo() {
         JPanel panel =
                 new JPanel(
