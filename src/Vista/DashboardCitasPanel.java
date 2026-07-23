@@ -30,9 +30,7 @@ public class DashboardCitasPanel
     private JLabel lblEstado;
     private Runnable onCitaFinalizada;
 
-    /*
-     * Componentes visuales del dashboard.
-     */
+
     private StatCard cardTotalCitas;
     private StatCard cardProgramadas;
     private StatCard cardConsultorio;
@@ -44,25 +42,21 @@ public class DashboardCitasPanel
         configurarPanel();
         inicializarComponentes();
 
-        /*
-         * Lógica original del Observer.
-         */
+
         GestorCitas
                 .getInstancia()
                 .suscribir(this);
 
-        /*
-         * Lógica original del dashboard.
-         */
+        GestorCitas
+                .getInstancia()
+                .suscribir(this);
+
+       
         iniciarAutoRefresh();
         cargarDatos();
     }
 
-    /*
-     * =========================================================
-     * CONFIGURACIÓN PRINCIPAL
-     * =========================================================
-     */
+
 
     private void configurarPanel() {
         setLayout(
@@ -96,9 +90,7 @@ public class DashboardCitasPanel
                 )
         );
 
-        /*
-         * Espaciado exterior general del dashboard.
-         */
+
         contenido.setBorder(
                 BorderFactory.createEmptyBorder(
                         20,
@@ -136,9 +128,7 @@ public class DashboardCitasPanel
                 Component.LEFT_ALIGNMENT
         );
 
-        /*
-         * Todos los componentes ocupan el ancho disponible.
-         */
+
         encabezado.setMaximumSize(
                 new Dimension(
                         Integer.MAX_VALUE,
@@ -244,11 +234,7 @@ public class DashboardCitasPanel
         );
     }
 
-    /*
-     * =========================================================
-     * ENCABEZADO
-     * =========================================================
-     */
+
 
     private SectionHeader crearEncabezado() {
         SectionHeader encabezado =
@@ -271,11 +257,7 @@ public class DashboardCitasPanel
         return encabezado;
     }
 
-    /*
-     * =========================================================
-     * TARJETAS DE ESTADÍSTICAS
-     * =========================================================
-     */
+
 
     private DashboardStatsPanel crearPanelEstadisticas() {
         DashboardStatsPanel panelEstadisticas =
@@ -343,11 +325,7 @@ public class DashboardCitasPanel
         return panelEstadisticas;
     }
 
-    /*
-     * =========================================================
-     * GRÁFICO
-     * =========================================================
-     */
+
 
     private DashboardCard crearTarjetaGrafico() {
         DashboardCard tarjetaGrafico =
@@ -375,11 +353,7 @@ public class DashboardCitasPanel
         return tarjetaGrafico;
     }
 
-    /*
-     * =========================================================
-     * TARJETA DE TABLA
-     * =========================================================
-     */
+
 
     private DashboardCard crearTarjetaTabla() {
         DashboardCard tarjetaTabla =
@@ -424,11 +398,7 @@ public class DashboardCitasPanel
         return tarjetaTabla;
     }
 
-    /*
-     * =========================================================
-     * TABLA
-     * =========================================================
-     */
+
 
     private ModernScrollPane crearTabla() {
         String[] columnas = {
@@ -498,11 +468,7 @@ public class DashboardCitasPanel
                                 44
                         )
                 );
-
-        /*
-         * Este listener únicamente actualiza
-         * la tarjeta visual de cita seleccionada.
-         */
+                
         tablaCitas
                 .getSelectionModel()
                 .addListSelectionListener(evento -> {
@@ -604,9 +570,6 @@ public class DashboardCitasPanel
                                 )
                         );
 
-                        /*
-                         * Filas alternadas.
-                         */
                         if (!seleccionado) {
                             componente.setBackground(
                                     fila % 2 == 0
@@ -691,11 +654,7 @@ public class DashboardCitasPanel
         };
     }
 
-    /*
-     * =========================================================
-     * CITA SELECCIONADA
-     * =========================================================
-     */
+
 
     private void actualizarTarjetaSeleccionada() {
         int filaVista =
@@ -757,11 +716,7 @@ public class DashboardCitasPanel
                 );
     }
 
-    /*
-     * =========================================================
-     * PANEL DE ACCIONES
-     * =========================================================
-     */
+
 
     private JPanel crearPanelAcciones() {
         JPanel panelAcciones =
@@ -887,11 +842,7 @@ public class DashboardCitasPanel
         return panelAcciones;
     }
 
-    /*
-     * =========================================================
-     * LÓGICA ORIGINAL
-     * =========================================================
-     */
+
 
     private void iniciarAutoRefresh() {
         new Timer(
@@ -1045,11 +996,6 @@ public class DashboardCitasPanel
                                                         .name()
                                         }
                                 );
-
-                                /*
-                                 * Conteos utilizados únicamente
-                                 * para las tarjetas y el gráfico.
-                                 */
                                 if (cita.getEstado() != null) {
                                     String estadoActual =
                                             cita
@@ -1111,9 +1057,6 @@ public class DashboardCitasPanel
                                     cantidadConsultorio
                             );
 
-                            /*
-                             * Actualización visual del estado.
-                             */
                             actualizarTarjetaSeleccionada();
 
                             lblEstado.setText(

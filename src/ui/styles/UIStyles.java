@@ -6,14 +6,10 @@ import java.awt.Font;
 public final class UIStyles {
 
     private UIStyles() {
-        // Evita crear instancias de esta clase.
+            
     }
 
-    /*
-     * =========================================================
-     * COLORES PRINCIPALES
-     * =========================================================
-     */
+
     public static final Color CITAS_ACCENT_LIGHT =
             new Color(
                     229,
@@ -35,11 +31,7 @@ public final class UIStyles {
     public static final Color SECONDARY_LIGHT =
             new Color(224, 247, 244);
 
-    /*
-     * =========================================================
-     * COLORES DE ESTADO
-     * =========================================================
-     */
+
 
     public static final Color SUCCESS =
             new Color(35, 155, 95);
@@ -65,11 +57,7 @@ public final class UIStyles {
     public static final Color INFO_LIGHT =
             new Color(228, 240, 255);
 
-    /*
-     * =========================================================
-     * COLORES POR MÓDULO
-     * =========================================================
-     */
+
 
     public static final Color DASHBOARD_ACCENT =
             new Color(47, 103, 231);
@@ -89,11 +77,6 @@ public final class UIStyles {
     public static final Color FACTURACION_ACCENT =
             new Color(35, 155, 95);
 
-    /*
-     * =========================================================
-     * FONDOS Y TARJETAS
-     * =========================================================
-     */
 
     public static final Color BACKGROUND =
             new Color(245, 247, 250);
@@ -110,11 +93,7 @@ public final class UIStyles {
     public static final Color HOVER_BACKGROUND =
             new Color(237, 242, 252);
 
-    /*
-     * =========================================================
-     * SIDEBAR
-     * =========================================================
-     */
+
 
     public static final Color SIDEBAR =
             new Color(15, 23, 42);
@@ -134,11 +113,7 @@ public final class UIStyles {
     public static final Color SIDEBAR_TEXT =
             new Color(226, 232, 240);
 
-    /*
-     * =========================================================
-     * TEXTO Y BORDES
-     * =========================================================
-     */
+
 
     public static final Color TEXT =
             new Color(45, 55, 72);
@@ -155,11 +130,7 @@ public final class UIStyles {
     public static final Color BORDER_DARK =
             new Color(205, 211, 220);
 
-    /*
-     * =========================================================
-     * COLORES PARA GRÁFICOS
-     * =========================================================
-     */
+
 
     public static final Color CHART_BLUE =
             new Color(53, 103, 246);
@@ -185,11 +156,7 @@ public final class UIStyles {
     public static final Color CHART_PURPLE_LIGHT =
             new Color(237, 233, 255);
 
-    /*
-     * =========================================================
-     * FUENTES
-     * =========================================================
-     */
+
 
     public static final Font TITLE =
             new Font(

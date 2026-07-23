@@ -85,9 +85,7 @@ public class StatCard extends RoundedPanel {
                 )
         );
 
-        /*
-         * Icono
-         */
+
         JPanel panelIcono =
                 crearPanelIcono(
                         icono
@@ -97,9 +95,7 @@ public class StatCard extends RoundedPanel {
                 (JLabel) panelIcono
                         .getComponent(0);
 
-        /*
-         * Contenido textual
-         */
+
         JPanel panelContenido =
                 new JPanel();
 

@@ -17,11 +17,7 @@ public class SectionHeader extends JPanel {
 
     private Color colorAcento;
 
-    /*
-     * =========================================================
-     * CONSTRUCTOR SIMPLE
-     * =========================================================
-     */
+
 
     public SectionHeader(
             String titulo,
@@ -35,11 +31,7 @@ public class SectionHeader extends JPanel {
         );
     }
 
-    /*
-     * =========================================================
-     * CONSTRUCTOR COMPLETO
-     * =========================================================
-     */
+
 
     public SectionHeader(
             String titulo,
@@ -78,11 +70,7 @@ public class SectionHeader extends JPanel {
         construirContenido();
     }
 
-    /*
-     * =========================================================
-     * CONFIGURACIÓN PRINCIPAL
-     * =========================================================
-     */
+
 
     private void configurarPanel() {
         setLayout(
@@ -118,11 +106,7 @@ public class SectionHeader extends JPanel {
         );
     }
 
-    /*
-     * =========================================================
-     * CONSTRUCCIÓN DEL ENCABEZADO
-     * =========================================================
-     */
+
 
     private void construirContenido() {
         JPanel panelIzquierdo =
@@ -147,11 +131,7 @@ public class SectionHeader extends JPanel {
         );
     }
 
-    /*
-     * =========================================================
-     * PANEL IZQUIERDO
-     * =========================================================
-     */
+
 
     private JPanel crearPanelIzquierdo() {
         JPanel panel =
@@ -188,11 +168,7 @@ public class SectionHeader extends JPanel {
         return panel;
     }
 
-    /*
-     * =========================================================
-     * BARRA DE ACENTO
-     * =========================================================
-     */
+
 
     private JPanel crearBarraAcento() {
         JPanel barra =
@@ -223,11 +199,7 @@ public class SectionHeader extends JPanel {
         return barra;
     }
 
-    /*
-     * =========================================================
-     * ICONO
-     * =========================================================
-     */
+
 
     private JLabel crearIcono(
             String icono
@@ -290,11 +262,7 @@ public class SectionHeader extends JPanel {
         return etiqueta;
     }
 
-    /*
-     * =========================================================
-     * TÍTULO
-     * =========================================================
-     */
+
 
     private JLabel crearTitulo(
             String titulo
@@ -321,11 +289,7 @@ public class SectionHeader extends JPanel {
         return etiqueta;
     }
 
-    /*
-     * =========================================================
-     * DESCRIPCIÓN
-     * =========================================================
-     */
+
 
     private JLabel crearDescripcion(
             String descripcion
@@ -352,11 +316,7 @@ public class SectionHeader extends JPanel {
         return etiqueta;
     }
 
-    /*
-     * =========================================================
-     * PANEL DE TEXTOS
-     * =========================================================
-     */
+
 
     private JPanel crearPanelTextos() {
         JPanel panel =
@@ -396,11 +356,7 @@ public class SectionHeader extends JPanel {
         return panel;
     }
 
-    /*
-     * =========================================================
-     * PANEL DERECHO
-     * =========================================================
-     */
+
 
     private JPanel crearPanelDerecho() {
         JPanel panel =
@@ -422,11 +378,7 @@ public class SectionHeader extends JPanel {
         return panel;
     }
 
-    /*
-     * =========================================================
-     * COMPONENTE DERECHO
-     * =========================================================
-     */
+
 
     public void setRightComponent(
             Component componente
@@ -456,11 +408,7 @@ public class SectionHeader extends JPanel {
         repaint();
     }
 
-    /*
-     * =========================================================
-     * MÉTODOS DE ACTUALIZACIÓN VISUAL
-     * =========================================================
-     */
+
 
     public void setTitulo(
             String titulo
@@ -529,11 +477,7 @@ public class SectionHeader extends JPanel {
         repaint();
     }
 
-    /*
-     * =========================================================
-     * MÉTODOS DE CONSULTA
-     * =========================================================
-     */
+
 
     public String getTitulo() {
         return lblTitulo.getText();
@@ -551,11 +495,7 @@ public class SectionHeader extends JPanel {
         return panelDerecho;
     }
 
-    /*
-     * =========================================================
-     * UTILIDADES
-     * =========================================================
-     */
+
 
     private String validarIcono(
             String icono

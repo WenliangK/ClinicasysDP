@@ -57,9 +57,6 @@ public class DashboardCard extends RoundedPanel {
                 )
         );
 
-        /*
-         * Barra de color superior.
-         */
         barraSuperior =
                 new JPanel();
 
@@ -101,9 +98,7 @@ public class DashboardCard extends RoundedPanel {
                 )
         );
 
-        /*
-         * Encabezado de la tarjeta.
-         */
+
         JPanel encabezado =
                 new JPanel(
                         new BorderLayout(
@@ -114,9 +109,7 @@ public class DashboardCard extends RoundedPanel {
 
         encabezado.setOpaque(false);
 
-        /*
-         * Icono.
-         */
+
         lblIcono =
                 new JLabel(
                         icono == null
@@ -168,9 +161,7 @@ public class DashboardCard extends RoundedPanel {
                 )
         );
 
-        /*
-         * Textos.
-         */
+
         JPanel panelTextos =
                 new JPanel();
 
@@ -241,9 +232,7 @@ public class DashboardCard extends RoundedPanel {
                 BorderLayout.CENTER
         );
 
-        /*
-         * Separador.
-         */
+
         JSeparator separador =
                 new JSeparator();
 
@@ -255,9 +244,7 @@ public class DashboardCard extends RoundedPanel {
                 UIStyles.BORDER
         );
 
-        /*
-         * Cabecera con separador.
-         */
+
         JPanel bloqueEncabezado =
                 new JPanel(
                         new BorderLayout(
@@ -278,9 +265,7 @@ public class DashboardCard extends RoundedPanel {
                 BorderLayout.SOUTH
         );
 
-        /*
-         * Contenido dinámico.
-         */
+
         panelContenido =
                 new JPanel(
                         new BorderLayout()

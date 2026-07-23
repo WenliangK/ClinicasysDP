@@ -38,7 +38,7 @@ public class GeneradorFacturaImagen {
 
     public static BufferedImage generar(String nombreClinica, long numeroFactura, LocalDateTime fecha,
                                         String pacienteNombre, String pacienteDni, String pacienteTelefono,
-                                        String motivo, List<ItemFactura> items) {
+                                        String medicoNombre, String motivo, List<ItemFactura> items) {
 
         double subtotal = items.stream().mapToDouble(ItemFactura::getTotal).sum();
         double impuestos = 0.0;
@@ -119,6 +119,14 @@ public class GeneradorFacturaImagen {
         g.drawString("Atendido por", leftX, y);
         y += 24;
         g.setFont(fSmall);
+        g.drawString(
+                medicoNombre == null || medicoNombre.isBlank()
+                        ? "Médico no asignado"
+                        : recortar(medicoNombre.trim(), 34),
+                leftX,
+                y
+        );
+        y += 20;
         g.drawString(nombreClinica, leftX, y);
         y += 20;
         g.drawString("Metodo de pago: Efectivo / Tarjeta", leftX, y);

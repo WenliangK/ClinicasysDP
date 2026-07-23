@@ -20,30 +20,41 @@ import Utilidades.Validador;
 import ui.styles.UIStyles;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class NuevaCitaPanel extends JPanel {
+
+    private static final DateTimeFormatter FORMATO_HORA =
+            DateTimeFormatter.ofPattern("HH:mm");
+
+    private static final String CARGANDO_HORARIOS =
+            "Cargando horarios...";
+
+    private static final String SIN_HORARIOS =
+            "Sin horarios disponibles";
 
     private ModernComboBox<Paciente> cbPaciente;
     private ModernComboBox<Medico> cbMedico;
     private ModernComboBox<String> cbTipoAtencion;
+    private ModernComboBox<String> cbHora;
 
     private ModernTextField txtEspecialidad;
     private ModernTextField txtMotivo;
 
     private JSpinner spinnerFecha;
-    private JSpinner spinnerHora;
-    private JSpinner spinnerSala;
 
     private ModernButton btnGuardar;
     private JLabel lblEstado;
-    private int solicitudSalaActual;
+
+    private long solicitudHorariosActual;
 
     public NuevaCitaPanel() {
         configurarPanel();
@@ -51,8 +62,6 @@ public class NuevaCitaPanel extends JPanel {
         cargarPacientes();
         cargarMedicos();
     }
-
-
 
     private void configurarPanel() {
         setLayout(new BorderLayout());
@@ -104,7 +113,6 @@ public class NuevaCitaPanel extends JPanel {
         add(scrollPrincipal, BorderLayout.CENTER);
     }
 
-
     private SectionHeader crearEncabezado() {
         SectionHeader encabezado = new SectionHeader(
                 "Registrar nueva cita",
@@ -120,12 +128,10 @@ public class NuevaCitaPanel extends JPanel {
         return encabezado;
     }
 
-
-
     private DashboardCard crearTarjetaFormulario() {
         DashboardCard tarjeta = new DashboardCard(
                 "Datos de la cita",
-                "Selecciona el paciente, el médico, la sala y el horario de atención.",
+                "Selecciona el paciente, el médico y un horario disponible. La sala se asignará automáticamente.",
                 UIStyles.PRIMARY,
                 "▣"
         );
@@ -194,8 +200,6 @@ public class NuevaCitaPanel extends JPanel {
         return panel;
     }
 
-
-
     private JPanel crearFormulario() {
         inicializarCampos();
 
@@ -212,6 +216,9 @@ public class NuevaCitaPanel extends JPanel {
 
     private void inicializarCampos() {
         cbPaciente = new ModernComboBox<>();
+        cbPaciente.addActionListener(
+                e -> cargarHorariosDisponibles()
+        );
 
         cbTipoAtencion = new ModernComboBox<>(
                 new String[]{
@@ -221,9 +228,10 @@ public class NuevaCitaPanel extends JPanel {
         );
 
         cbMedico = new ModernComboBox<>();
-        cbMedico.addActionListener(
-                e -> actualizarDatosMedico()
-        );
+        cbMedico.addActionListener(e -> {
+            actualizarDatosMedico();
+            cargarHorariosDisponibles();
+        });
 
         txtEspecialidad = new ModernTextField("", 20);
         txtEspecialidad.setEditable(false);
@@ -236,37 +244,36 @@ public class NuevaCitaPanel extends JPanel {
                 "Motivo de la consulta"
         );
 
-        spinnerSala = new JSpinner(
-                new SpinnerNumberModel(1, 1, 20, 1)
+        ZoneId zona = ZoneId.systemDefault();
+        Date inicioHoy = Date.from(
+                LocalDate.now()
+                        .atStartOfDay(zona)
+                        .toInstant()
         );
-        spinnerSala.setEnabled(false);
 
-        spinnerFecha = new JSpinner(
-                new SpinnerDateModel()
+        SpinnerDateModel modeloFecha = new SpinnerDateModel(
+                inicioHoy,
+                inicioHoy,
+                null,
+                Calendar.DAY_OF_MONTH
         );
+
+        spinnerFecha = new JSpinner(modeloFecha);
         spinnerFecha.setEditor(
                 new JSpinner.DateEditor(
                         spinnerFecha,
                         "dd/MM/yyyy"
                 )
         );
-
-        spinnerHora = new JSpinner(
-                new SpinnerDateModel()
-        );
-        spinnerHora.setEditor(
-                new JSpinner.DateEditor(
-                        spinnerHora,
-                        "HH:mm"
-                )
+        spinnerFecha.addChangeListener(
+                e -> cargarHorariosDisponibles()
         );
 
-        aplicarEstiloSpinner(spinnerSala);
         aplicarEstiloSpinner(spinnerFecha);
-        aplicarEstiloSpinner(spinnerHora);
 
-        spinnerFecha.addChangeListener(e -> actualizarSalaAutomatica());
-        spinnerHora.addChangeListener(e -> actualizarSalaAutomatica());
+        cbHora = new ModernComboBox<>();
+        cbHora.setEnabled(false);
+        cbHora.addItem(SIN_HORARIOS);
     }
 
     private RoundedPanel crearTarjetaDatosAtencion() {
@@ -335,7 +342,7 @@ public class NuevaCitaPanel extends JPanel {
         tarjeta.add(
                 crearTituloGrupo(
                         "Programación de la cita",
-                        "Define el consultorio, motivo, fecha y hora."
+                        "Los horarios ocupados se excluyen automáticamente."
                 ),
                 BorderLayout.NORTH
         );
@@ -348,14 +355,6 @@ public class NuevaCitaPanel extends JPanel {
         agregarCampo(
                 campos,
                 0,
-                "Sala",
-                "Número de consultorio disponible.",
-                spinnerSala
-        );
-
-        agregarCampo(
-                campos,
-                1,
                 "Motivo de consulta",
                 "Describe brevemente la razón de la atención.",
                 txtMotivo
@@ -363,7 +362,7 @@ public class NuevaCitaPanel extends JPanel {
 
         agregarCampo(
                 campos,
-                2,
+                1,
                 "Fecha",
                 "Selecciona el día programado.",
                 spinnerFecha
@@ -371,10 +370,10 @@ public class NuevaCitaPanel extends JPanel {
 
         agregarCampo(
                 campos,
-                3,
-                "Hora",
-                "Selecciona la hora de atención.",
-                spinnerHora
+                2,
+                "Hora disponible",
+                "Solo se muestran horarios libres para el paciente y el médico.",
+                cbHora
         );
 
         tarjeta.add(campos, BorderLayout.CENTER);
@@ -506,11 +505,89 @@ public class NuevaCitaPanel extends JPanel {
         panel.add(bloque, gbc);
     }
 
-    /*
-     * =========================================================
-     * PANEL INFERIOR
-     * =========================================================
-     */
+    private JPanel crearPanelInferior() {
+        JPanel panelInferior = new JPanel(
+                new BorderLayout(18, 0)
+        );
+        panelInferior.setOpaque(false);
+        panelInferior.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(
+                                1,
+                                0,
+                                0,
+                                0,
+                                UIStyles.BORDER
+                        ),
+                        BorderFactory.createEmptyBorder(
+                                18,
+                                0,
+                                0,
+                                0
+                        )
+                )
+        );
+
+        JPanel informacion = new JPanel();
+        informacion.setOpaque(false);
+        informacion.setLayout(
+                new BoxLayout(
+                        informacion,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        JLabel tituloEstado = new JLabel(
+                "Estado del formulario"
+        );
+        tituloEstado.setFont(UIStyles.SMALL);
+        tituloEstado.setForeground(UIStyles.TEXT);
+        tituloEstado.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        lblEstado = new JLabel(
+                "Completa todos los datos requeridos."
+        );
+        lblEstado.setFont(UIStyles.SMALL);
+        lblEstado.setForeground(UIStyles.TEXT_SECONDARY);
+        lblEstado.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        informacion.add(tituloEstado);
+        informacion.add(Box.createVerticalStrut(3));
+        informacion.add(lblEstado);
+
+        btnGuardar = new ModernButton(
+                "Guardar cita",
+                ModernButton.Tipo.PRIMARIO
+        );
+        btnGuardar.setPreferredSize(
+                new Dimension(170, 42)
+        );
+        btnGuardar.setEnabled(false);
+        btnGuardar.addActionListener(
+                e -> guardarCita()
+        );
+
+        JPanel panelBoton = new JPanel(
+                new FlowLayout(
+                        FlowLayout.RIGHT,
+                        0,
+                        0
+                )
+        );
+        panelBoton.setOpaque(false);
+        panelBoton.add(btnGuardar);
+
+        panelInferior.add(
+                informacion,
+                BorderLayout.CENTER
+        );
+        panelInferior.add(
+                panelBoton,
+                BorderLayout.EAST
+        );
+
+        return panelInferior;
+    }
 
     private JPanel crearPanelInferior() {
         JPanel panelInferior = new JPanel(
@@ -595,12 +672,6 @@ public class NuevaCitaPanel extends JPanel {
         return panelInferior;
     }
 
-    /*
-     * =========================================================
-     * CARGA DE DATOS
-     * =========================================================
-     */
-
     public void cargarPacientes() {
         Paciente seleccionado =
                 (Paciente) cbPaciente.getSelectedItem();
@@ -637,6 +708,8 @@ public class NuevaCitaPanel extends JPanel {
                             lblEstado.setText(
                                     "Pacientes cargados correctamente."
                             );
+
+                            cargarHorariosDisponibles();
                         })
                 )
                 .exceptionally(error -> {
@@ -690,6 +763,7 @@ public class NuevaCitaPanel extends JPanel {
                             }
 
                             actualizarDatosMedico();
+                            cargarHorariosDisponibles();
 
                             lblEstado.setText(
                                     "Formulario preparado."
@@ -733,22 +807,151 @@ public class NuevaCitaPanel extends JPanel {
                             : "PRIVADO"
             );
         }
-
-        actualizarSalaAutomatica();
     }
 
-    /**
-     * Consulta y muestra automaticamente la primera sala libre para
-     * el medico, la fecha y la hora seleccionados.
-     */
-    private void actualizarSalaAutomatica() {
-        if (spinnerFecha == null || spinnerHora == null || spinnerSala == null) {
+    private void cargarHorariosDisponibles() {
+        if (cbHora == null
+                || spinnerFecha == null
+                || lblEstado == null
+                || btnGuardar == null) {
             return;
         }
 
-        Medico medico = (Medico) cbMedico.getSelectedItem();
-        if (medico == null) {
+        Paciente paciente =
+                (Paciente) cbPaciente.getSelectedItem();
+
+        Medico medico =
+                (Medico) cbMedico.getSelectedItem();
+
+        LocalDate fecha = obtenerFechaSeleccionada();
+
+        long solicitud = ++solicitudHorariosActual;
+
+        cbHora.removeAllItems();
+        cbHora.addItem(CARGANDO_HORARIOS);
+        cbHora.setEnabled(false);
+        btnGuardar.setEnabled(false);
+
+        if (paciente == null || medico == null || fecha == null) {
+            cbHora.removeAllItems();
+            cbHora.addItem(SIN_HORARIOS);
+            lblEstado.setText(
+                    "Selecciona un paciente, un médico y una fecha."
+            );
             return;
+        }
+
+        lblEstado.setText(
+                "Consultando horarios disponibles..."
+        );
+
+        GestorCitas
+                .getInstancia()
+                .obtenerHorariosDisponibles(
+                        paciente,
+                        medico,
+                        fecha
+                )
+                .thenAccept(horarios ->
+                        SwingUtilities.invokeLater(() -> {
+                            if (solicitud != solicitudHorariosActual) {
+                                return;
+                            }
+
+                            mostrarHorarios(horarios);
+                        })
+                )
+                .exceptionally(error -> {
+                    SwingUtilities.invokeLater(() -> {
+                        if (solicitud != solicitudHorariosActual) {
+                            return;
+                        }
+
+                        cbHora.removeAllItems();
+                        cbHora.addItem(SIN_HORARIOS);
+                        cbHora.setEnabled(false);
+                        btnGuardar.setEnabled(false);
+
+                        lblEstado.setText(
+                                "No se pudieron consultar los horarios."
+                        );
+
+                        Validador.mostrarError(
+                                this,
+                                RespuestaHttp.mensaje(error)
+                        );
+                    });
+
+                    return null;
+                });
+    }
+
+    private void mostrarHorarios(List<LocalTime> horarios) {
+        cbHora.removeAllItems();
+
+        if (horarios == null || horarios.isEmpty()) {
+            cbHora.addItem(SIN_HORARIOS);
+            cbHora.setEnabled(false);
+            btnGuardar.setEnabled(false);
+
+            lblEstado.setText(
+                    "No hay horarios disponibles para la fecha seleccionada."
+            );
+            return;
+        }
+
+        for (LocalTime horario : horarios) {
+            cbHora.addItem(
+                    horario.format(FORMATO_HORA)
+            );
+        }
+
+        cbHora.setSelectedIndex(0);
+        cbHora.setEnabled(true);
+        btnGuardar.setEnabled(true);
+
+        lblEstado.setText(
+                horarios.size()
+                        + " horario(s) disponible(s)."
+        );
+    }
+
+    private LocalDate obtenerFechaSeleccionada() {
+        if (spinnerFecha == null) {
+            return null;
+        }
+
+        Date fechaValor =
+                (Date) spinnerFecha.getValue();
+
+        return fechaValor
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+
+    private LocalTime obtenerHoraSeleccionada() {
+        if (cbHora == null || !cbHora.isEnabled()) {
+            return null;
+        }
+
+        String valor =
+                (String) cbHora.getSelectedItem();
+
+        if (valor == null
+                || valor.isBlank()
+                || CARGANDO_HORARIOS.equals(valor)
+                || SIN_HORARIOS.equals(valor)) {
+            return null;
+        }
+
+        try {
+            return LocalTime.parse(
+                    valor,
+                    FORMATO_HORA
+            );
+        } catch (RuntimeException error) {
+            return null;
         }
 
         LocalDateTime fechaHora = obtenerFechaHoraSeleccionada();
@@ -791,12 +994,6 @@ public class NuevaCitaPanel extends JPanel {
         return LocalDateTime.of(fecha, hora);
     }
 
-    /*
-     * =========================================================
-     * REGISTRO DE LA CITA
-     * =========================================================
-     */
-
     private void guardarCita() {
         Paciente paciente =
                 (Paciente) cbPaciente.getSelectedItem();
@@ -831,8 +1028,19 @@ public class NuevaCitaPanel extends JPanel {
             return;
         }
 
+        LocalDate fecha = obtenerFechaSeleccionada();
+        LocalTime hora = obtenerHoraSeleccionada();
+
+        if (fecha == null || hora == null) {
+            Validador.mostrarError(
+                    this,
+                    "Selecciona una fecha y un horario disponible."
+            );
+            return;
+        }
+
         LocalDateTime fechaHora =
-                obtenerFechaHoraSeleccionada();
+                LocalDateTime.of(fecha, hora);
 
         if (fechaHora.isBefore(
                 LocalDateTime.now()
@@ -841,6 +1049,7 @@ public class NuevaCitaPanel extends JPanel {
                     this,
                     "La fecha y hora de la cita no pueden estar en el pasado."
             );
+            cargarHorariosDisponibles();
             return;
         }
 
@@ -860,6 +1069,7 @@ public class NuevaCitaPanel extends JPanel {
                 );
 
         btnGuardar.setEnabled(false);
+        cbHora.setEnabled(false);
         btnGuardar.setText("Guardando...");
         lblEstado.setText(
                 "Registrando la cita..."
@@ -875,7 +1085,6 @@ public class NuevaCitaPanel extends JPanel {
                 )
                 .thenAccept(cita ->
                         SwingUtilities.invokeLater(() -> {
-                            btnGuardar.setEnabled(true);
                             btnGuardar.setText(
                                     "Guardar cita"
                             );
@@ -884,23 +1093,25 @@ public class NuevaCitaPanel extends JPanel {
                                     "Cita registrada correctamente."
                             );
 
-                            spinnerSala.setValue(cita.getSalaId());
-
                             Validador.mostrarExito(
                                     this,
                                     "Cita registrada correctamente."
                                             + "\nMédico: "
                                             + medico
+                                            + "\nFecha: "
+                                            + fecha
+                                            + "\nHora: "
+                                            + hora.format(FORMATO_HORA)
                                             + "\nSala asignada: "
                                             + cita.getSalaId()
                             );
 
                             txtMotivo.setText("");
+                            cargarHorariosDisponibles();
                         })
                 )
                 .exceptionally(error -> {
                     SwingUtilities.invokeLater(() -> {
-                        btnGuardar.setEnabled(true);
                         btnGuardar.setText(
                                 "Guardar cita"
                         );
@@ -913,17 +1124,13 @@ public class NuevaCitaPanel extends JPanel {
                                 this,
                                 RespuestaHttp.mensaje(error)
                         );
+
+                        cargarHorariosDisponibles();
                     });
 
                     return null;
                 });
     }
-
-    /*
-     * =========================================================
-     * ESTILO DE LOS SPINNERS
-     * =========================================================
-     */
 
     private static void aplicarEstiloSpinner(
             JSpinner spinner

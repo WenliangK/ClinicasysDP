@@ -119,9 +119,7 @@ public class HistorialCitasPanel extends JPanel {
                 tarjetaHistorial
         );
 
-        /*
-         * Scroll principal para resoluciones pequeñas.
-         */
+
         JScrollPane scrollPrincipal =
                 new JScrollPane(
                         contenido

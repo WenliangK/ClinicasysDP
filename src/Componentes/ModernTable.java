@@ -11,11 +11,7 @@ import java.awt.*;
 
 public class ModernTable extends JTable {
 
-    /*
-     * =========================================================
-     * CONSTRUCTORES
-     * =========================================================
-     */
+
 
     public ModernTable() {
         super();
@@ -29,11 +25,7 @@ public class ModernTable extends JTable {
         configurarTabla();
     }
 
-    /*
-     * =========================================================
-     * CONFIGURACIÓN GENERAL
-     * =========================================================
-     */
+
 
     private void configurarTabla() {
         setFont(
@@ -106,11 +98,7 @@ public class ModernTable extends JTable {
         configurarEncabezado();
     }
 
-    /*
-     * =========================================================
-     * ENCABEZADO
-     * =========================================================
-     */
+
 
     private void configurarEncabezado() {
         JTableHeader encabezado =
@@ -232,9 +220,6 @@ public class ModernTable extends JTable {
     private int obtenerAlineacionEncabezado(
             int columna
     ) {
-        /*
-         * La primera columna normalmente corresponde al ID.
-         */
         if (columna == 0) {
             return SwingConstants.CENTER;
         }
@@ -242,11 +227,7 @@ public class ModernTable extends JTable {
         return SwingConstants.LEFT;
     }
 
-    /*
-     * =========================================================
-     * RENDERIZADOR GENERAL DE CELDAS
-     * =========================================================
-     */
+
 
     @Override
     public Component prepareRenderer(
@@ -308,12 +289,6 @@ public class ModernTable extends JTable {
         return componente;
     }
 
-    /*
-     * =========================================================
-     * CORRECCIÓN CUANDO CAMBIA EL MODELO
-     * =========================================================
-     */
-
     @Override
     public void setModel(
             TableModel modelo
@@ -322,20 +297,12 @@ public class ModernTable extends JTable {
                 modelo
         );
 
-        /*
-         * JTable llama a setModel desde su constructor,
-         * por eso comprobamos que el encabezado ya exista.
-         */
         if (getTableHeader() != null) {
             configurarEncabezado();
         }
     }
 
-    /*
-     * =========================================================
-     * MÉTODOS VISUALES OPCIONALES
-     * =========================================================
-     */
+
 
     public void establecerAlturaFilas(
             int altura

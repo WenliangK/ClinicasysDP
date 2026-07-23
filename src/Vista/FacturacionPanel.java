@@ -54,8 +54,9 @@ public class FacturacionPanel extends JPanel {
     private Factura facturaGuardada;
     private Cita citaSeleccionada;
 
-    // Copia exacta de los datos usados para la factura guardada.
+
     private Paciente pacienteFacturado;
+    private String medicoFacturado;
     private String motivoFacturado;
     private List<GeneradorFacturaImagen.ItemFactura> itemsFacturados;
     private BufferedImage imagenFacturaGuardada;
@@ -749,10 +750,6 @@ public class FacturacionPanel extends JPanel {
         return (Paciente) comboPaciente.getSelectedItem();
     }
 
-    /**
-     * Busca la cita atendida mas reciente que todavia no tiene factura y
-     * completa automaticamente el motivo sin modificar el diseño del panel.
-     */
     private void cargarMotivoPacienteSeleccionado() {
         Paciente paciente = pacienteSeleccionado();
 
@@ -760,6 +757,10 @@ public class FacturacionPanel extends JPanel {
         facturaCalculada = null;
         facturaGuardada = null;
         imagenFacturaGuardada = null;
+        pacienteFacturado = null;
+        medicoFacturado = null;
+        motivoFacturado = null;
+        itemsFacturados = null;
         txtMotivo.setText("");
         txtResultado.setText(
                 "La vista previa de la boleta aparecerá aquí."
@@ -858,7 +859,8 @@ public class FacturacionPanel extends JPanel {
         txtResultado.setText(
                 gestor.generarBoleta(
                         facturaCalculada,
-                        pacienteSeleccionado()
+                        pacienteSeleccionado(),
+                        citaSeleccionada
                 )
         );
 
@@ -903,6 +905,7 @@ public class FacturacionPanel extends JPanel {
 
                             // Se conservan los datos exactos usados al guardar.
                             pacienteFacturado = paciente;
+                            medicoFacturado = obtenerNombreMedico(citaSeleccionada);
                             motivoFacturado = txtMotivo.getText().trim();
                             itemsFacturados = construirItems();
                             imagenFacturaGuardada = generarImagenFacturaGuardada();
@@ -959,6 +962,7 @@ public class FacturacionPanel extends JPanel {
                 pacienteFacturado.getNombre(),
                 pacienteFacturado.getDni(),
                 pacienteFacturado.getTelefono(),
+                medicoFacturado,
                 motivoFacturado,
                 itemsFacturados
         );
@@ -1165,6 +1169,16 @@ public class FacturacionPanel extends JPanel {
         }
 
         return items;
+    }
+
+    private static String obtenerNombreMedico(Cita cita) {
+        if (cita == null
+                || cita.getMedico() == null
+                || cita.getMedico().isBlank()) {
+            return "No asignado";
+        }
+
+        return cita.getMedico().trim();
     }
 
     private static class DefaultListCellRendererPaciente
